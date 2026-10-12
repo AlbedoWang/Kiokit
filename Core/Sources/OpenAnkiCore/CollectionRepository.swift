@@ -4,10 +4,10 @@ import ZIPFoundation
 public struct ImportedCollection: Sendable {
     public var snapshot: CollectionSnapshot
     public var stagingDirectory: URL?
-    public var warnings: [String]
+    public var warnings: [LocalizedMessage]
     public var isBackup: Bool
 
-    public init(snapshot: CollectionSnapshot, stagingDirectory: URL? = nil, warnings: [String] = [], isBackup: Bool = false) {
+    public init(snapshot: CollectionSnapshot, stagingDirectory: URL? = nil, warnings: [LocalizedMessage] = [], isBackup: Bool = false) {
         self.snapshot = snapshot
         self.stagingDirectory = stagingDirectory
         self.warnings = warnings
@@ -46,6 +46,7 @@ public struct CollectionRepository: Sendable {
     public func commit(_ imported: ImportedCollection, snapshot: CollectionSnapshot) throws {
         try snapshot.validate()
         let manager = FileManager.default
+        let requiredMedia = Set(snapshot.cards.compactMap(\.mediaFolder))
         var installed: [URL] = []
         do {
             if let staging = imported.stagingDirectory {
@@ -54,6 +55,7 @@ public struct CollectionRepository: Sendable {
                     try manager.createDirectory(at: mediaURL, withIntermediateDirectories: true)
                     for folder in try manager.contentsOfDirectory(at: source, includingPropertiesForKeys: nil) {
                         guard CollectionSnapshot.safeComponent(folder.lastPathComponent) else { throw CollectionError.invalid("媒体路径无效。") }
+                        guard requiredMedia.contains(folder.lastPathComponent) else { continue }
                         let target = mediaURL.appendingPathComponent(folder.lastPathComponent, isDirectory: true)
                         if !manager.fileExists(atPath: target.path) {
                             try manager.copyItem(at: folder, to: target)
@@ -110,10 +112,20 @@ public struct CollectionRepository: Sendable {
         }
         var ids = Set(result.cards.map(\.id))
         var sourceKeys = Set(result.cards.compactMap(\.sourceKey))
+        let sourceIndices = Dictionary(result.cards.enumerated().compactMap { index, card in
+            card.sourceKey.map { ($0, index) }
+        }, uniquingKeysWith: { first, _ in first })
         var added = 0
         var skipped = 0
         for var card in imported.cards {
             if ids.contains(card.id) || card.sourceKey.map({ sourceKeys.contains($0) }) == true {
+                // Upgrade older imports with read-aloud metadata only when their
+                // content still matches. Existing content and progress are kept.
+                if card.pronunciation != nil, let key = card.sourceKey, let index = sourceIndices[key],
+                   result.cards[index].pronunciation == nil,
+                   result.cards[index].front == card.front, result.cards[index].back == card.back {
+                    result.cards[index].pronunciation = card.pronunciation
+                }
                 skipped += 1
                 continue
             }

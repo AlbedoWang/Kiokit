@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "OpenAnkiCore",
+    defaultLocalization: "en",
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [.library(name: "OpenAnkiCore", targets: ["OpenAnkiCore"])],
     dependencies: [
@@ -15,7 +16,7 @@ let package = Package(
             "CSQLite",
             .product(name: "ZIPFoundation", package: "ZIPFoundation"),
             .product(name: "libzstd", package: "zstd"),
-        ]),
+        ], resources: [.process("Resources")]),
         .testTarget(name: "OpenAnkiCoreTests", dependencies: ["OpenAnkiCore"], resources: [.copy("Fixtures")]),
     ]
 )

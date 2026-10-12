@@ -65,12 +65,12 @@ public enum Scheduler {
         return card
     }
 
-    public static func intervalLabel(for card: Flashcard, rating: ReviewRating, now: Date = .now) -> String {
+    public static func intervalLabel(for card: Flashcard, rating: ReviewRating, now: Date = .now, locale: Locale = InterfaceLanguage.system.locale()) -> String {
         let seconds = answer(card, rating: rating, now: now).due.timeIntervalSince(now)
-        if seconds < 3600 { return "\(Int(seconds / 60)) 分钟" }
-        if seconds < 86_400 { return "\(Int(seconds / 3600)) 小时" }
+        if seconds < 3600 { return LocalizedMessage(key: "%@ 分钟", arguments: [String(Int(seconds / 60))]).localized(locale: locale) }
+        if seconds < 86_400 { return LocalizedMessage(key: "%@ 小时", arguments: [String(Int(seconds / 3600))]).localized(locale: locale) }
         let days = Int((seconds / 86_400).rounded())
-        if days >= 365 { return String(format: "%.1f 年", Double(days) / 365) }
-        return "\(days) 天"
+        if days >= 365 { return LocalizedMessage(key: "%@ 年", arguments: [String(format: "%.1f", locale: locale, Double(days) / 365)]).localized(locale: locale) }
+        return LocalizedMessage(key: "%@ 天", arguments: [String(days)]).localized(locale: locale)
     }
 }

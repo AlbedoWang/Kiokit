@@ -3,9 +3,12 @@ import OpenAnkiCore
 
 struct DecksView: View {
     @Environment(CollectionStore.self) private var store
+    @Environment(\.horizontalSizeClass) private var sizeClass
     @Binding var importing: Bool
     @State private var addingDeck = false
+    @State private var addingCard = false
     @State private var studying = false
+    @State private var searching = false
     @State private var search = ""
 
     private var filteredDecks: [Deck] {
@@ -15,65 +18,93 @@ struct DecksView: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 30)) { context in
             ScrollView {
-                VStack(alignment: .leading, spacing: 26) {
-                    HStack(alignment: .center) {
-                        VStack(alignment: .leading, spacing: 7) {
-                            Text(Date.now, format: .dateTime.month().day().weekday(.wide))
-                                .font(.caption).foregroundStyle(.secondary)
-                            Text("每天一点，记得更久。")
-                                .font(.system(.title2, design: .rounded, weight: .bold))
+                VStack(spacing: 28) {
+                    VStack(spacing: 13) {
+                        HStack(spacing: 12) {
+                            OpenAnkiMark(size: 30)
+                            Text(store.text("今天想记住什么？"))
+                                .font(AnkiTheme.editorial(sizeClass == .regular ? 36 : 29))
+                                .foregroundStyle(AnkiTheme.ink)
                         }
-                        Spacer()
-                        Image(systemName: "sparkles")
-                            .font(.title2).foregroundStyle(AnkiTheme.tint)
-                            .frame(width: 48, height: 48)
-                            .background(AnkiTheme.tint.opacity(0.08), in: Circle())
+                        Text(store.text("每天一点，让知识留得更久。"))
+                            .font(.system(size: 14)).foregroundStyle(AnkiTheme.muted)
                     }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, sizeClass == .regular ? 66 : 28)
                     todayCard(now: context.date)
-                    VStack(alignment: .leading, spacing: 14) {
-                        HStack {
-                            Text("我的牌组").font(.title3.bold())
-                            Text("\(store.decks.count)").font(.caption.bold()).foregroundStyle(.secondary)
+                    HStack(spacing: 8) {
+                        OutlineAction(title: store.text("导入牌组"), symbol: "square.and.arrow.down") { importing = true }
+                        OutlineAction(title: store.text("新建牌组"), symbol: "plus") { addingDeck = true }
+                        OutlineAction(title: store.text("添加卡片"), symbol: "square.and.pencil") { addingCard = true }
+                            .disabled(store.decks.isEmpty)
+                    }.padding(.top, -12)
+                    VStack(alignment: .leading, spacing: 15) {
+                        HStack(spacing: 8) {
+                            Text(store.text("你的牌组")).font(AnkiTheme.editorial(21))
+                            Text("\(store.decks.count)").font(.caption).foregroundStyle(AnkiTheme.muted)
                             Spacer()
-                            Button { addingDeck = true } label: { Image(systemName: "plus").font(.headline).padding(8) }
-                                .accessibilityLabel("新建牌组").accessibilityIdentifier("addDeck")
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    searching.toggle()
+                                    if !searching { search = "" }
+                                }
+                            } label: { Image(systemName: "magnifyingglass").font(.system(size: 15)).frame(width: 34, height: 34) }
+                                .accessibilityLabel(store.text("搜索牌组"))
+                            Button { addingDeck = true } label: { Image(systemName: "plus").font(.system(size: 17)).frame(width: 34, height: 34) }
+                                .accessibilityLabel(store.text("新建牌组")).accessibilityIdentifier("addDeck")
+                        }.foregroundStyle(AnkiTheme.ink)
+                        if searching {
+                            HStack(spacing: 10) {
+                                Image(systemName: "magnifyingglass").foregroundStyle(AnkiTheme.muted)
+                                TextField(store.text("搜索牌组"), text: $search).font(.subheadline)
+                                    .autocorrectionDisabled().textInputAutocapitalization(.never)
+                            }.padding(13).background(AnkiTheme.surface, in: RoundedRectangle(cornerRadius: 10))
+                                .overlay { RoundedRectangle(cornerRadius: 10).strokeBorder(AnkiTheme.border, lineWidth: 0.75) }
                         }
                         if filteredDecks.isEmpty {
-                            ContentUnavailableView(search.isEmpty ? "创建你的第一个牌组" : "没有找到牌组", systemImage: "rectangle.stack", description: Text(search.isEmpty ? "添加卡片，或从 Anki 导入 .apkg 牌组。" : "试试其他关键词。"))
-                            if search.isEmpty {
-                                PrimaryButton(title: "导入牌组", symbol: "square.and.arrow.down") { importing = true }
-                            }
+                            ContentUnavailableView(search.isEmpty ? store.text("从第一个牌组开始") : store.text("没有找到牌组"), systemImage: "rectangle.stack", description: Text(search.isEmpty ? store.text("添加卡片，或导入已有的 Anki 牌组。") : store.text("试试其他关键词。")))
                         } else {
-                            ForEach(filteredDecks) { deck in
-                                NavigationLink { DeckDetailView(deckID: deck.id) } label: {
-                                    deckRow(deck, now: context.date)
-                                }.buttonStyle(.plain)
+                            VStack(spacing: 0) {
+                                ForEach(Array(filteredDecks.enumerated()), id: \.element.id) { index, deck in
+                                    NavigationLink { DeckDetailView(deckID: deck.id) } label: {
+                                        deckRow(deck, now: context.date)
+                                    }.buttonStyle(.plain)
+                                    if index < filteredDecks.count - 1 {
+                                        Rectangle().fill(AnkiTheme.border).frame(height: 0.5).padding(.leading, 64)
+                                    }
+                                }
                             }
+                            .background(AnkiTheme.surface, in: RoundedRectangle(cornerRadius: 16))
+                            .overlay { RoundedRectangle(cornerRadius: 16).strokeBorder(AnkiTheme.border, lineWidth: 0.75) }
                         }
-                    }
-                    HStack(spacing: 12) {
-                        Image(systemName: "leaf").foregroundStyle(AnkiTheme.tint)
-                        Text("给记忆一点时间。每次回想，都是一次生长。")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }.frame(maxWidth: .infinity).padding(.bottom, 10)
+                    }.padding(.top, 4)
+                    Text(store.text("学一点，记久一点。"))
+                        .font(.system(size: 12)).foregroundStyle(AnkiTheme.muted).padding(.bottom, 16)
                 }
-                .padding(20)
-                .frame(maxWidth: 760)
-                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 24).padding(.bottom, 20)
+                .frame(maxWidth: 720).frame(maxWidth: .infinity)
             }
         }
         .background(AnkiTheme.background)
-        .navigationTitle("OpenAnki")
-        .navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $search, prompt: "搜索牌组")
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { importing = true } label: { Image(systemName: "square.and.arrow.down") }
-                    .accessibilityLabel("导入牌组").accessibilityIdentifier("importDeck")
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top, spacing: 0) { header }
         .sheet(isPresented: $addingDeck) { DeckEditorView() }
+        .sheet(isPresented: $addingCard) { CardEditorView() }
         .fullScreenCover(isPresented: $studying) { ReviewView(deckID: nil) }
+    }
+
+    private var header: some View {
+        HStack {
+            Text("OpenAnki").font(AnkiTheme.editorial(23))
+            Spacer()
+            Text(store.text("离线学习")).font(.system(size: 11)).foregroundStyle(AnkiTheme.muted)
+            Button { importing = true } label: {
+                Image(systemName: "square.and.arrow.down").font(.system(size: 17)).frame(width: 38, height: 38)
+            }.buttonStyle(.plain).foregroundStyle(AnkiTheme.ink)
+                .accessibilityLabel(store.text("导入牌组")).accessibilityIdentifier("importDeck")
+        }
+        .padding(.horizontal, 24).padding(.vertical, 6)
+        .background(AnkiTheme.background)
     }
 
     private func todayCard(now: Date) -> some View {
@@ -81,66 +112,63 @@ struct DecksView: View {
         let reviewed = store.todayReviews(now: now).count
         let goal = store.settings.dailyGoal
         return VStack(alignment: .leading, spacing: 20) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 9) {
-                    Text("今日学习").font(.subheadline.weight(.medium)).foregroundStyle(.white.opacity(0.75))
-                    HStack(alignment: .firstTextBaseline, spacing: 6) {
-                        Text("\(queue.count)").font(.system(size: 48, weight: .semibold, design: .rounded)).monospacedDigit()
-                        Text("张待学习").font(.subheadline).foregroundStyle(.white.opacity(0.8))
-                    }
-                }
+            HStack {
+                Text(store.text("今日学习")).font(.system(size: 13)).foregroundStyle(AnkiTheme.muted)
                 Spacer()
-                ZStack {
-                    Circle().stroke(.white.opacity(0.15), lineWidth: 5)
-                    Circle().trim(from: 0, to: min(1, Double(reviewed) / Double(goal)))
-                        .stroke(.white.opacity(0.85), style: StrokeStyle(lineWidth: 5, lineCap: .round))
-                        .rotationEffect(.degrees(-90))
-                    VStack(spacing: 3) {
-                        Text("\(reviewed)").font(.title3.bold()).monospacedDigit()
-                        Text("/ \(goal)").font(.caption2).foregroundStyle(.white.opacity(0.7))
-                    }
-                }.frame(width: 62, height: 62).padding(.top, 5)
-                    .accessibilityLabel("今日已评分 \(reviewed) 次，目标 \(goal) 次")
+                Text(store.text("\(reviewed) / \(goal) 次"))
+                    .font(.system(size: 12)).monospacedDigit().foregroundStyle(AnkiTheme.muted)
+                    .accessibilityLabel(store.text("今日已评分 \(reviewed) 次，目标 \(goal) 次"))
             }
-            HStack(spacing: 18) {
-                Text("\(queue.filter { $0.stage == .new }.count) 张新卡片")
-                Text("\(queue.filter { $0.stage != .new }.count) 张复习卡片")
-            }.font(.caption).foregroundStyle(.white.opacity(0.75))
-            Button { studying = true } label: {
-                HStack {
-                    Text(queue.isEmpty ? "本轮学习已完成" : "开始学习").font(.headline)
-                    Spacer()
-                    Image(systemName: queue.isEmpty ? "checkmark.circle" : "arrow.right")
-                }.padding(16).foregroundStyle(AnkiTheme.tint)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 15))
-            }.disabled(queue.isEmpty).accessibilityIdentifier("startStudy")
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("\(queue.count)").font(AnkiTheme.editorial(40)).monospacedDigit()
+                Text(queue.isEmpty ? store.text("本轮已完成") : store.text("张卡片，等你回想。"))
+                    .font(.system(size: 16)).foregroundStyle(AnkiTheme.muted)
+            }
+            ProgressView(value: min(Double(reviewed), Double(goal)), total: Double(goal))
+                .tint(AnkiTheme.brand)
+            HStack(spacing: 14) {
+                Text(store.text("\(queue.filter { $0.stage == .new }.count) 张新卡片"))
+                Text(store.text("\(queue.filter { $0.stage != .new }.count) 张复习"))
+            }.font(.system(size: 12)).foregroundStyle(AnkiTheme.muted)
+            Rectangle().fill(AnkiTheme.border).frame(height: 0.5)
+            HStack {
+                Label(store.text("慢慢来，记得更牢。"), systemImage: "book")
+                    .font(.system(size: 11)).foregroundStyle(AnkiTheme.muted)
+                Spacer(minLength: 4)
+                Button { studying = true } label: {
+                    HStack(spacing: 8) {
+                        Text(queue.isEmpty ? store.text("已完成") : store.text("开始学习"))
+                        Image(systemName: queue.isEmpty ? "checkmark" : "arrow.right")
+                    }
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color(red: 0.12, green: 0.08, blue: 0.06))
+                    .padding(.horizontal, 16).padding(.vertical, 12)
+                    .background(AnkiTheme.brand.opacity(queue.isEmpty ? 0.3 : 1), in: RoundedRectangle(cornerRadius: 10))
+                }.buttonStyle(.plain).disabled(queue.isEmpty).accessibilityIdentifier("startStudy")
+            }
         }
-        .foregroundStyle(.white).padding(24)
-        .background {
-            RoundedRectangle(cornerRadius: 28).fill(AnkiTheme.tint.gradient)
-                .overlay(alignment: .topTrailing) {
-                    Image(systemName: "leaf.fill").font(.system(size: 120)).rotationEffect(.degrees(-30))
-                        .foregroundStyle(.white.opacity(0.035)).offset(x: 25, y: 15)
-                }.clipShape(RoundedRectangle(cornerRadius: 28))
-        }
+        .padding(22).foregroundStyle(AnkiTheme.ink)
+        .background(AnkiTheme.surface, in: RoundedRectangle(cornerRadius: 20))
+        .overlay { RoundedRectangle(cornerRadius: 20).strokeBorder(AnkiTheme.border, lineWidth: 0.75) }
+        .shadow(color: .black.opacity(0.025), radius: 10, x: 0, y: 3)
     }
 
     private func deckRow(_ deck: Deck, now: Date) -> some View {
         let cards = store.cards(in: deck.id)
         let queue = store.queue(deckID: deck.id, now: now)
-        return HStack(spacing: 14) {
-            DeckIcon(deck: deck)
-            VStack(alignment: .leading, spacing: 8) {
-                Text(deck.name).font(.headline).lineLimit(2)
-                HStack(spacing: 12) {
-                    StatPill(count: queue.filter { $0.stage == .new }.count, title: "新", color: .blue)
-                    StatPill(count: queue.filter { $0.stage != .new }.count, title: "复习", color: AnkiTheme.tint)
-                    Text("共 \(cards.count) 张").font(.caption).foregroundStyle(.tertiary)
-                }
+        return HStack(spacing: 12) {
+            DeckIcon(deck: deck, size: 36)
+            VStack(alignment: .leading, spacing: 7) {
+                Text(deck.name).font(.system(size: 15, weight: .medium)).foregroundStyle(AnkiTheme.ink).lineLimit(2)
+                HStack(spacing: 10) {
+                    Text(store.text("\(queue.filter { $0.stage == .new }.count) 新"))
+                    Text(store.text("\(queue.filter { $0.stage != .new }.count) 复习"))
+                    Text(store.text("共 \(cards.count) 张"))
+                }.font(.system(size: 11)).monospacedDigit().foregroundStyle(AnkiTheme.muted)
             }
             Spacer(minLength: 0)
-            Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
-        }.padding(18).background(AnkiTheme.surface, in: RoundedRectangle(cornerRadius: 22))
+            Image(systemName: "chevron.right").font(.system(size: 10, weight: .medium)).foregroundStyle(AnkiTheme.muted)
+        }.padding(.horizontal, 16).padding(.vertical, 17).contentShape(Rectangle())
     }
 }
 
@@ -160,22 +188,23 @@ struct DeckDetailView: View {
                     VStack(spacing: 24) {
                         VStack(spacing: 14) {
                             DeckIcon(deck: deck, size: 80)
-                            Text(deck.name).font(.title.bold()).multilineTextAlignment(.center)
-                            Text("\(store.cards(in: deckID).count) 张卡片 · 每一次回想，都算数")
+                            Text(deck.name).font(AnkiTheme.editorial(30)).multilineTextAlignment(.center)
+                            Text(store.text("\(store.cards(in: deckID).count) 张卡片 · 每一次回想，都算数"))
                                 .font(.subheadline).foregroundStyle(.secondary)
                         }.padding(.top, 20)
                         TimelineView(.periodic(from: .now, by: 30)) { context in
                             let queue = store.queue(deckID: deckID, now: context.date)
                             VStack(spacing: 22) {
                                 HStack {
-                                    metric("新卡片", count: queue.filter { $0.stage == .new }.count, color: .blue)
+                                    metric(store.text("新卡片"), count: queue.filter { $0.stage == .new }.count, color: AnkiTheme.blue)
                                     Spacer()
-                                    metric("学习中", count: queue.filter { $0.stage == .learning || $0.stage == .relearning }.count, color: .orange)
+                                    metric(store.text("学习中"), count: queue.filter { $0.stage == .learning || $0.stage == .relearning }.count, color: AnkiTheme.ochre)
                                     Spacer()
-                                    metric("待复习", count: queue.filter { $0.stage == .review }.count, color: AnkiTheme.tint)
+                                    metric(store.text("待复习"), count: queue.filter { $0.stage == .review }.count, color: AnkiTheme.tint)
                                 }
-                                PrimaryButton(title: queue.isEmpty ? "本轮学习已完成" : "开始学习", symbol: queue.isEmpty ? "checkmark" : "arrow.right") { studying = true }
+                                PrimaryButton(title: queue.isEmpty ? store.text("本轮学习已完成") : store.text("开始学习"), symbol: queue.isEmpty ? "checkmark" : "arrow.right") { studying = true }
                                     .disabled(queue.isEmpty)
+                                    .accessibilityIdentifier("deckStartStudy")
                                 if queue.isEmpty {
                                     Text(nextDueMessage(now: context.date)).font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
                                 }
@@ -183,47 +212,48 @@ struct DeckDetailView: View {
                         }
                         NavigationLink { CardBrowserView(deckID: deckID) } label: {
                             HStack {
-                                Label("浏览全部卡片", systemImage: "rectangle.on.rectangle")
+                                Label(store.text("浏览全部卡片"), systemImage: "rectangle.on.rectangle")
                                 Spacer()
                                 Image(systemName: "chevron.right").font(.caption)
                             }.font(.subheadline.weight(.medium)).ankiSurface()
                         }.buttonStyle(.plain)
-                        Button { addingCard = true } label: { Label("添加卡片", systemImage: "plus.circle") }
+                        Button { addingCard = true } label: { Label(store.text("添加卡片"), systemImage: "plus.circle") }
                             .font(.headline).padding(10)
                     }.padding(20).frame(maxWidth: 680).frame(maxWidth: .infinity)
                 }.background(AnkiTheme.background)
             }
         }
-        .navigationTitle("牌组").navigationBarTitleDisplayMode(.inline)
+        .navigationTitle(store.text("牌组")).navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
-                    Button("编辑牌组", systemImage: "pencil") { editingDeck = true }
-                    Button("添加卡片", systemImage: "plus") { addingCard = true }
-                    Button("删除牌组", systemImage: "trash", role: .destructive) { deleting = true }
+                    Button(store.text("编辑牌组"), systemImage: "pencil") { editingDeck = true }
+                    Button(store.text("添加卡片"), systemImage: "plus") { addingCard = true }
+                    Button(store.text("删除牌组"), systemImage: "trash", role: .destructive) { deleting = true }
                 } label: { Image(systemName: "ellipsis.circle") }
             }
         }
         .sheet(isPresented: $editingDeck) { if let deck = store.deck(deckID) { DeckEditorView(deck: deck) } }
         .sheet(isPresented: $addingCard) { CardEditorView(deckID: deckID) }
         .fullScreenCover(isPresented: $studying) { ReviewView(deckID: deckID) }
-        .confirmationDialog("删除这个牌组及其所有卡片和复习记录？", isPresented: $deleting, titleVisibility: .visible) {
-            Button("删除牌组", role: .destructive) { store.deleteDeck(deckID); if store.deck(deckID) == nil { dismiss() } }
+        .confirmationDialog(store.text("删除这个牌组及其所有卡片和复习记录？"), isPresented: $deleting, titleVisibility: .visible) {
+            Button(store.text("删除牌组"), role: .destructive) { store.deleteDeck(deckID); if store.deck(deckID) == nil { dismiss() } }
         }
     }
 
     private func metric(_ title: String, count: Int, color: Color) -> some View {
         VStack(spacing: 8) {
-            Text("\(count)").font(.system(.largeTitle, design: .rounded, weight: .semibold)).foregroundStyle(color)
+            Text("\(count)").font(AnkiTheme.editorial(34)).foregroundStyle(color)
             Text(title).font(.caption).foregroundStyle(.secondary)
         }
     }
 
     private func nextDueMessage(now: Date) -> String {
         if let next = store.cards(in: deckID).filter({ !$0.isSuspended && $0.stage != .new && $0.due > now }).map(\.due).min() {
-            return "下一次复习：\(next.formatted(date: .abbreviated, time: .shortened))"
+            return store.text("下一次复习：\(next.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened).locale(store.uiLocale)))")
         }
-        return store.cards(in: deckID).contains(where: { !$0.isSuspended && $0.stage == .new }) ? "今日新卡片额度已用完，可在设置中调整。" : "添加新卡片，或稍后再来复习。"
+        return store.cards(in: deckID).contains(where: { !$0.isSuspended && $0.stage == .new }) ? store.text("今日新卡片额度已用完，可在设置中调整。") : store.text("添加新卡片，或稍后再来复习。")
     }
 }
 
@@ -246,10 +276,10 @@ struct DeckEditorView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("牌组名称") {
-                    TextField("例如：日语单词", text: $name).accessibilityIdentifier("deckName")
+                Section(store.text("牌组名称")) {
+                    TextField(store.text("例如：日语单词"), text: $name).accessibilityIdentifier("deckName")
                 }
-                Section("图标") {
+                Section(store.text("图标")) {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 4), spacing: 14) {
                         ForEach(symbols, id: \.self) { item in
                             Button { symbol = item } label: {
@@ -260,22 +290,23 @@ struct DeckEditorView: View {
                         }
                     }.padding(.vertical, 8)
                 }
-                Section("颜色") {
+                Section(store.text("颜色")) {
                     HStack(spacing: 20) {
                         ForEach(AnkiTheme.palette.indices, id: \.self) { index in
                             Button { color = index } label: {
                                 Circle().fill(AnkiTheme.palette[index]).frame(width: 34, height: 34)
                                     .overlay { if color == index { Image(systemName: "checkmark").font(.caption.bold()).foregroundStyle(.white) } }
-                            }.buttonStyle(.plain).accessibilityLabel("颜色 \(index + 1)")
+                            }.buttonStyle(.plain).accessibilityLabel(store.text("颜色 \(index + 1)"))
                         }
                     }.padding(.vertical, 8)
                 }
             }
-            .navigationTitle(original == nil ? "新建牌组" : "编辑牌组").navigationBarTitleDisplayMode(.inline)
+            .ankiForm()
+            .navigationTitle(original == nil ? store.text("新建牌组") : store.text("编辑牌组")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button(store.text("取消")) { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
+                    Button(store.text("保存")) {
                         var deck = original ?? Deck(name: name)
                         deck.name = name; deck.symbol = symbol; deck.colorIndex = color
                         if store.saveDeck(deck) { dismiss() }

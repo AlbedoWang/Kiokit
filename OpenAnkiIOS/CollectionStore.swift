@@ -23,12 +23,24 @@ final class CollectionStore {
     var cards: [Flashcard] { snapshot.cards }
     var settings: StudySettings { snapshot.settings }
     var canUndo: Bool { undoRecordID != nil }
+    var interfaceLanguage: InterfaceLanguage { InterfaceLanguage(rawValue: settings.interfaceLanguage ?? "system") ?? .system }
+    var uiLocale: Locale { interfaceLanguage.locale() }
+
+    func text(_ message: LocalizedMessage) -> String { message.localized(locale: uiLocale) }
+    func text(key: String) -> String { LocalizedMessage(key: key).localized(locale: uiLocale) }
+    func errorText(_ error: Error) -> String {
+        (error as? CollectionError)?.localizedDescription(locale: uiLocale) ?? error.localizedDescription
+    }
 
     func reload() {
         do {
-            if let existing = try repository.load() { snapshot = existing }
+            if let existing = try repository.load() {
+                let updated = Self.localizedBuiltInContent(existing)
+                if updated.changed { try repository.save(updated.snapshot) }
+                snapshot = updated.snapshot
+            }
             else {
-                let sample = Self.sampleCollection()
+                let sample = BuiltInDecks.initialCollection(locale: InterfaceLanguage.system.locale())
                 try repository.save(sample)
                 snapshot = sample
             }
@@ -36,7 +48,7 @@ final class CollectionStore {
             errorMessage = nil
         } catch {
             loadFailed = true
-            errorMessage = "读取本地数据失败，原文件已保留。\n\(error.localizedDescription)"
+            errorMessage = text("读取本地数据失败，原文件已保留。\n\(errorText(error))")
         }
     }
 
@@ -46,12 +58,13 @@ final class CollectionStore {
         var next = snapshot
         change(&next)
         do {
-            try repository.save(next)
-            snapshot = next
+            let localized = Self.localizedBuiltInContent(next).snapshot
+            try repository.save(localized)
+            snapshot = localized
             if clearUndo { undoRecordID = nil }
             return true
         } catch {
-            errorMessage = "保存失败，本次操作尚未生效。\n\(error.localizedDescription)"
+            errorMessage = text("保存失败，本次操作尚未生效。\n\(errorText(error))")
             return false
         }
     }
@@ -66,7 +79,7 @@ final class CollectionStore {
         let name = deck.name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { return false }
         guard !decks.contains(where: { $0.id != deck.id && $0.name.caseInsensitiveCompare(name) == .orderedSame }) else {
-            errorMessage = "已经有同名牌组，请换一个名称。"
+            errorMessage = text("已经有同名牌组，请换一个名称。")
             return false
         }
         var trimmed = deck
@@ -92,7 +105,13 @@ final class CollectionStore {
               deck(card.deckID) != nil else { return false }
         return update {
             if let index = $0.cards.firstIndex(where: { $0.id == card.id }) {
+                let original = $0.cards[index]
+                let contentChanged = original.front != card.front || original.back != card.back
                 $0.cards[index] = card
+                if contentChanged { $0.cards[index].pronunciation = nil }
+                if contentChanged || card.deckID != original.deckID || card.tags != original.tags || card.isHTML != original.isHTML {
+                    $0.cards[index].builtInID = nil
+                }
                 for reviewIndex in $0.reviews.indices where $0.reviews[reviewIndex].cardID == card.id {
                     $0.reviews[reviewIndex].deckID = card.deckID
                 }
@@ -124,6 +143,8 @@ final class CollectionStore {
             let original = $0.cards[index]
             var fresh = Flashcard(id: original.id, deckID: original.deckID, front: original.front, back: original.back, tags: original.tags, isHTML: original.isHTML, css: original.css, mediaFolder: original.mediaFolder, sourceKey: original.sourceKey, createdAt: original.createdAt)
             fresh.isSuspended = original.isSuspended
+            fresh.pronunciation = original.pronunciation
+            fresh.builtInID = original.builtInID
             $0.cards[index] = fresh
         }
     }
@@ -168,24 +189,26 @@ final class CollectionStore {
             } else {
                 defer { imported.cleanup() }
                 let merged = CollectionRepository.merging(imported.snapshot, into: snapshot)
-                try repository.commit(imported, snapshot: merged.snapshot)
-                snapshot = merged.snapshot
+                let localized = Self.localizedBuiltInContent(merged.snapshot).snapshot
+                try repository.commit(imported, snapshot: localized)
+                snapshot = localized
                 undoRecordID = nil
-                let details = imported.warnings.joined(separator: "\n")
-                importMessage = "已导入 \(merged.added) 张卡片" + (merged.skipped > 0 ? "，跳过 \(merged.skipped) 张重复卡片" : "") + "。\n新导入的 Anki 卡片从头开始学习。" + (details.isEmpty ? "" : "\n\n" + details)
+                let details = imported.warnings.map { text($0) }.joined(separator: "\n")
+                importMessage = text("已导入 \(merged.added) 张卡片") + (merged.skipped > 0 ? text("，跳过 \(merged.skipped) 张重复卡片") : "") + text("。\n新导入的 Anki 卡片从头开始学习。") + (details.isEmpty ? "" : "\n\n" + details)
             }
-        } catch { errorMessage = "导入失败，原有牌组已保留。\n\(error.localizedDescription)" }
+        } catch { errorMessage = text("导入失败，原有牌组已保留。\n\(errorText(error))") }
     }
 
     func restoreBackup() {
         guard let imported = pendingBackup else { return }
         defer { imported.cleanup(); pendingBackup = nil }
         do {
-            try repository.commit(imported, snapshot: imported.snapshot)
-            snapshot = imported.snapshot
+            let localized = Self.localizedBuiltInContent(imported.snapshot).snapshot
+            try repository.commit(imported, snapshot: localized)
+            snapshot = localized
             undoRecordID = nil
-            importMessage = "已恢复 \(decks.count) 个牌组和 \(cards.count) 张卡片，包括学习进度。"
-        } catch { errorMessage = "恢复失败，原有数据已保留。\n\(error.localizedDescription)" }
+            importMessage = text("已恢复 \(decks.count) 个牌组和 \(cards.count) 张卡片，包括学习进度。")
+        } catch { errorMessage = text("恢复失败，原有数据已保留。\n\(errorText(error))") }
     }
 
     func cancelRestore() { pendingBackup?.cleanup(); pendingBackup = nil }
@@ -196,32 +219,8 @@ final class CollectionStore {
         return try await Task.detached(priority: .userInitiated) { try repository.backup(snapshot) }.value
     }
 
-    private static func sampleCollection() -> CollectionSnapshot {
-        let english = Deck(name: "日常英语", symbol: "textformat.abc", colorIndex: 0)
-        let swift = Deck(name: "Swift 随手记", symbol: "swift", colorIndex: 1)
-        let guide = Deck(name: "开始使用 Anki", symbol: "sparkles", colorIndex: 2)
-        let examples: [(Deck, [(String, String, [String])])] = [
-            (english, [
-                ("serendipity", "意外发现美好事物的幸运。\n\nFinding this little bookshop was pure serendipity.", ["词汇"]),
-                ("Take your time.", "慢慢来，不着急。", ["表达"]),
-                ("What does “a silver lining” mean?", "困境中的一线希望。\nEvery cloud has a silver lining.", ["表达"]),
-                ("resilient", "有韧性的；能从困难中恢复的。", ["词汇"]),
-                ("I’m looking forward to it.", "我很期待。", ["表达"]),
-            ]),
-            (swift, [
-                ("Swift 的 let 和 var 有什么区别？", "let 声明常量，初始化后不能重新赋值；var 声明变量。", ["基础"]),
-                ("Optional 表示什么？", "一个值可能存在，也可能是 nil。\n用 if let 或 guard let 安全解包。", ["基础"]),
-                ("SwiftUI 中 @State 的作用？", "保存视图拥有的状态。状态变化时，SwiftUI 更新依赖它的视图。", ["SwiftUI"]),
-                ("struct 和 class 的主要区别？", "struct 是值类型，赋值时具有独立的值语义。class 是引用类型，可以共享同一个实例。", ["基础"]),
-            ]),
-            (guide, [
-                ("怎样开始复习？", "选择一个牌组，点击「开始学习」。先回想答案，再点击「显示答案」。", ["使用指南"]),
-                ("四个评分按钮怎么选？", "重来：没有想起来。\n困难：想起来了，但很费力。\n良好：正常回忆出来。\n简单：立刻就想起来。", ["使用指南"]),
-                ("怎样导入桌面 Anki 牌组？", "在 Anki 桌面版导出 .apkg 文件，存到 iPhone 的「文件」中，再点击本应用的导入按钮。支持常见正反面、反向和填空卡片。", ["使用指南"]),
-                ("怎样备份学习进度？", "打开「设置」→「导出完整备份」。.openanki 文件包含牌组、进度和导入的媒体，保存后可以离线恢复。", ["使用指南"]),
-            ]),
-        ]
-        let cards = examples.flatMap { deck, entries in entries.map { Flashcard(deckID: deck.id, front: $0.0, back: $0.1, tags: $0.2) } }
-        return CollectionSnapshot(decks: [english, swift, guide], cards: cards)
+    private static func localizedBuiltInContent(_ snapshot: CollectionSnapshot) -> (snapshot: CollectionSnapshot, changed: Bool) {
+        let language = InterfaceLanguage(rawValue: snapshot.settings.interfaceLanguage ?? "system") ?? .system
+        return BuiltInDecks.updating(snapshot, locale: language.locale())
     }
 }

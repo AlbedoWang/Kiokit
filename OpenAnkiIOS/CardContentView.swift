@@ -4,13 +4,59 @@ import OpenAnkiCore
 
 struct CardContentView: View {
     @Environment(CollectionStore.self) private var store
+    @Environment(CardAudioController.self) private var audio
     let card: Flashcard
     let answer: Bool
+    var autoPlayAudio = false
+
+    private var owner: String { "\(card.id)-\(answer)" }
+    private var mediaURL: URL? { card.mediaFolder.map { store.repository.mediaURL.appendingPathComponent($0, isDirectory: true) } }
+    private var hasAudio: Bool { card.pronunciation != nil || !CardAudio.filenames(in: card.front + card.back).isEmpty }
 
     var body: some View {
+        VStack(spacing: 12) {
+            content
+            if hasAudio { audioControls }
+        }
+        .onAppear {
+            if autoPlayAudio && !answer && hasAudio && (store.settings.autoPlayAudio ?? true) {
+                audio.readWord(card: card, mediaURL: mediaURL, owner: owner)
+            }
+        }
+        .onDisappear { audio.stop(owner: owner) }
+    }
+
+    private var audioControls: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 18) {
+                Button { audio.readWord(card: card, mediaURL: mediaURL, owner: owner) } label: {
+                    Label(store.text("朗读单词"), systemImage: "speaker.wave.2")
+                }.accessibilityIdentifier("readWord")
+                if answer, let pronunciation = card.pronunciation, !pronunciation.examples.isEmpty {
+                    Button { audio.readExamples(pronunciation, owner: owner) } label: {
+                        Label(store.text("朗读例句"), systemImage: "text.bubble")
+                    }.accessibilityIdentifier("readExamples")
+                }
+                if audio.owner == owner && audio.isPlaying {
+                    Button { audio.stop(owner: owner) } label: { Image(systemName: "stop.circle") }
+                        .accessibilityLabel(store.text("停止朗读")).accessibilityIdentifier("stopAudio")
+                }
+            }.font(.footnote).buttonStyle(.plain).foregroundStyle(AnkiTheme.tint)
+            if audio.owner == owner {
+                if let error = audio.error {
+                    Text(store.text(error)).font(.caption).foregroundStyle(.secondary)
+                } else if let source = audio.source {
+                    Text(store.text(source)).font(.caption2).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("playbackSource")
+                }
+            }
+        }.padding(.vertical, 8)
+    }
+
+    @ViewBuilder private var content: some View {
         if card.isHTML {
-            OfflineCardWebView(html: answer ? card.back : card.front, css: card.css,
-                               mediaURL: card.mediaFolder.map { store.repository.mediaURL.appendingPathComponent($0, isDirectory: true) })
+            OfflineCardWebView(html: CardAudio.removingSoundMarkers(from: answer ? card.back : card.front), css: card.css,
+                               mediaURL: mediaURL)
                 .frame(minHeight: 220)
         } else {
             ScrollView {
@@ -20,7 +66,8 @@ struct CardContentView: View {
                         Rectangle().fill(AnkiTheme.tint.opacity(0.15)).frame(width: 46, height: 2)
                     }
                     Text(answer ? card.back : card.front)
-                        .font(.system(size: answer ? 24 : 29, weight: answer ? .regular : .medium, design: .rounded))
+                        .font(.system(size: answer ? 24 : 29, weight: .regular, design: .serif))
+                        .foregroundStyle(AnkiTheme.ink)
                         .multilineTextAlignment(.center).lineSpacing(8)
                         .textSelection(.enabled).frame(maxWidth: .infinity)
                         .accessibilityIdentifier(answer ? "answerContent" : "questionContent")
@@ -31,6 +78,7 @@ struct CardContentView: View {
 }
 
 private struct OfflineCardWebView: UIViewRepresentable {
+    @Environment(CollectionStore.self) private var store
     let html: String
     let css: String
     let mediaURL: URL?
@@ -62,12 +110,12 @@ private struct OfflineCardWebView: UIViewRepresentable {
         \(base)
         <style>
         :root { color-scheme: \(dark ? "dark" : "light"); }
-        body { margin: 0; padding: 24px 4px; font: 24px -apple-system, sans-serif; text-align: center; line-height: 1.65; overflow-wrap: anywhere; }
+        body { margin: 0; padding: 24px 4px; font: 24px Georgia, -apple-system, serif; text-align: center; line-height: 1.65; overflow-wrap: anywhere; }
         img, video { max-width: 100%; height: auto; } audio { width: 100%; margin: 16px 0; }
-        .cloze { color: #459b88; font-weight: 600; } .type-hint { color: #888; font-size: 16px; }
+        .cloze { color: \(dark ? "#e69b7e" : "#a64f33"); font-weight: 600; } .type-hint { color: #97958d; font-size: 16px; }
         hr { border: 0; border-top: 1px solid #8884; margin: 24px 0; }
         \(css)
-        html, body, .card { background: transparent !important; color: \(dark ? "#f2f2f2" : "#252a28") !important; }
+        html, body, .card { background: transparent !important; color: \(dark ? "#f9f9f7" : "#131313") !important; }
         </style></head><body class='card'>\(TemplateRenderer.htmlWithAudio(html))</body></html>
         """
         guard context.coordinator.lastDocument != document else { return }
@@ -80,7 +128,7 @@ private struct OfflineCardWebView: UIViewRepresentable {
             try document.write(to: url, atomically: true, encoding: .utf8)
             webView.loadFileURL(url, allowingReadAccessTo: directory)
         } catch {
-            webView.loadHTMLString("<p>无法显示卡片：\(TemplateRenderer.escape(error.localizedDescription))</p>", baseURL: nil)
+            webView.loadHTMLString(store.text("<p>无法显示卡片：\(TemplateRenderer.escape(store.errorText(error)))</p>"), baseURL: nil)
         }
     }
 

@@ -6,6 +6,8 @@ public struct Deck: Codable, Identifiable, Hashable, Sendable {
     public var symbol: String
     public var colorIndex: Int
     public var createdAt: Date
+    /// Identifies app-owned starter content; imported and user-created decks omit it.
+    public var builtInID: String?
 
     public init(id: UUID = UUID(), name: String, symbol: String = "rectangle.stack.fill", colorIndex: Int = 0, createdAt: Date = .now) {
         self.id = id
@@ -39,6 +41,8 @@ public struct Flashcard: Codable, Identifiable, Hashable, Sendable {
     public var css: String
     public var mediaFolder: String?
     public var sourceKey: String?
+    public var pronunciation: Pronunciation?
+    public var builtInID: String?
     public var createdAt: Date
     public var stage: CardStage = .new
     public var due: Date
@@ -169,6 +173,10 @@ public struct StudySettings: Codable, Equatable, Sendable {
     public var dailyGoal: Int = 30
     public var newCardsPerDay: Int = 20
     public var appearance: String = "system"
+    /// Missing in existing collections/backups means matching the system.
+    public var interfaceLanguage: String?
+    public var autoPlayAudio: Bool?
+    public var builtInContentVersion: Int?
     public init() {}
 }
 
@@ -206,9 +214,13 @@ public struct CollectionSnapshot: Codable, Sendable {
 }
 
 public enum CollectionError: LocalizedError, Sendable {
-    case invalid(String)
+    case invalid(LocalizedMessage)
     public var errorDescription: String? {
-        switch self { case .invalid(let message): message }
+        localizedDescription(locale: InterfaceLanguage.system.locale())
+    }
+
+    public func localizedDescription(locale: Locale) -> String {
+        switch self { case .invalid(let message): message.localized(locale: locale) }
     }
 }
 

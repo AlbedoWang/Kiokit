@@ -1,12 +1,10 @@
 # OpenAnki iOS
 
-用 Swift / SwiftUI 编写的独立离线闪卡应用，支持 iPhone 和 iPad，最低 iOS 17。无需账号或联网。
+An independent offline flashcard app built with Swift and SwiftUI for iPhone and iPad. Requires iOS 17 or later. No account or network connection is needed to study.
 
-## 运行
+## Running the app
 
-用 Xcode 打开 `OpenAnkiIOS.xcodeproj`，选择 `OpenAnkiIOS` scheme 和 iOS 模拟器，点击 Run。首次构建通过 Swift Package Manager 下载 ZIPFoundation 和 Zstandard；安装后的应用完全离线运行。真机运行需在 Signing & Capabilities 中选择你的开发团队。
-
-CLI 构建：
+Open `OpenAnkiIOS.xcodeproj` in Xcode, select the `OpenAnkiIOS` scheme and an iOS simulator, then click Run. The first build downloads ZIPFoundation and Zstandard through Swift Package Manager. To run on a physical device, select your development team in Signing & Capabilities.
 
 ```sh
 xcodebuild -project OpenAnkiIOS.xcodeproj -scheme OpenAnkiIOS \
@@ -14,56 +12,87 @@ xcodebuild -project OpenAnkiIOS.xcodeproj -scheme OpenAnkiIOS \
   -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO build
 ```
 
-## 已实现
+## Features
 
-- 新建、重命名和删除牌组，选择图标与颜色。
-- 添加、编辑、搜索、筛选、移动、暂停、删除卡片，添加反向卡片。
-- 四档评分、学习和重新学习步骤、到期队列、每日新卡片额度、撤销最近一次评分。
-- 本地保存复习进度，七天统计、连续学习天数、回忆率、学习时间。
-- 导入 `.apkg`（旧版 `.anki2` / `.anki21`、新版 Zstandard `.anki21b`）、UTF-8 CSV/TSV。
-- 常见 Anki 模板、条件字段、反向卡片、填空、振假名、提示、CSS、离线图片和音频。
-- `.openanki` 完整备份与恢复，包括牌组、学习进度、设置和媒体。
-- 浅色 / 深色模式，iPad 布局，键盘快捷键（空格显示答案，1–4 评分）。
+- Create, rename, and delete decks; choose icons and colors.
+- Add, edit, search, filter, move, suspend, and delete cards; create reversed cards.
+- Four review ratings, learning and relearning steps, due-card queues, a daily new-card limit, and undo for the most recent review.
+- Local progress storage, seven-day statistics, study streaks, recall rate, and study time.
+- Import `.apkg` files, including legacy `.anki2` / `.anki21` and modern Zstandard `.anki21b` packages, plus UTF-8 CSV and TSV files.
+- Common Anki templates, conditional fields, reversed cards, cloze deletions, furigana, hints, CSS, offline images, and audio.
+- Export and restore full `.openanki` backups containing decks, progress, settings, and media.
+- Light and dark appearance, an iPad sidebar, and keyboard shortcuts: Space reveals the answer; 1–4 select a rating.
+- English and Simplified Chinese interfaces, with an explicit language selector. The default follows the device's first preferred language; unsupported languages use English. An explicit Simplified Chinese script is supported regardless of the device's region.
+- Native playback of `[sound:...]` recordings. N4 Japanese words without recordings and Japanese examples use the device's Japanese voice. Word audio plays automatically during review unless disabled in Settings.
 
-首次运行包含三个可删除的示例牌组，统计从零开始。
+The interface takes its warm neutral palette, clay accent, thin borders, and typography hierarchy from the supplied Claude page reference. Headings use Georgia; controls use the system font. The app uses its own assets and does not bundle the downloaded page or Anthropic's proprietary fonts.
 
-## 导入说明
+## Built-in study guide
 
-在桌面 Anki 导出 `.apkg`，将文件保存到 iOS「文件」，点击应用中的导入按钮。也可以从「文件」的分享菜单用 OpenAnki 打开牌组。
+New installations include one removable deck, **Getting started with Anki**, containing four guide cards. Its deck name, questions, answers, and tags follow the app's interface language. Language changes take effect immediately and preserve card IDs and learning progress. Imported and user-created content keeps its original language.
 
-同名牌组合并；相同笔记 GUID + 卡片序号去重，重复导入保留已有学习进度，不更新已有卡片内容。Anki 导入卡片从新卡片开始，保留暂停状态，不迁移 Anki 的复习历史。
+The previous English vocabulary and Swift sample decks are no longer included. Existing installations remove their unchanged starter cards on the next launch and delete those decks if they become empty. Migration recognizes the shipped card content and origin, preserving imported, added, moved, or edited cards rather than deleting everything with a matching deck name.
 
-文本格式：前两列为正面和背面，第三列为可选标签（用空格分隔）。CSV 支持引号与多行字段，TSV 使用制表符；支持 Anki 文件头 `#separator`、`#html`、`#deck`。
+Deleting the guide or one of its cards does not recreate it later. Editing a guide card's content, tags, format, or deck makes it user-owned, so later language changes preserve those edits. A renamed guide keeps its custom name.
 
-恢复 `.openanki` 备份会替换当前集合，应用会要求确认。恢复前建议先导出当前备份。读取原集合失败时不会重新创建或覆盖数据；保存失败时不会推进复习。媒体先安装，再原子提交集合。
+## Importing decks
 
-支持范围：这是 Swift 实现的独立应用，复习算法采用 SM-2 风格，未集成 Anki 的 Rust 后端或 FSRS。导入模板会渲染成独立卡片；编辑一张卡片不会连带修改同笔记的其他卡片。图像遮挡、自定义 JavaScript、MathJax、外部网络资源、AnkiWeb 同步和 `.colpkg` 暂未实现。依赖这些功能的复杂模板需要先在桌面版调整。
+Export an `.apkg` file from desktop Anki, save it to Files on your iPhone or iPad, and choose Import deck in OpenAnki. You can also open a supported deck from the Files share menu.
 
-导入大小限制：每个集合解压后 256 MB、单个媒体 64 MB、媒体总大小 1 GB、单包 100,000 张卡片和 20,000 个媒体文件。
+Decks with matching names are merged. Cards are deduplicated by Anki note GUID and card ordinal. Reimporting preserves existing progress and card content. Newly imported cards start as new; suspension is retained, but Anki review history is not transferred.
 
-## 代码结构
+Reimporting an older N4 import adds pronunciation metadata to cards whose content still matches, without resetting progress. Edited cards do not receive pronunciation metadata for their old text. Editing a card's question or answer clears automatically derived pronunciation metadata to prevent stale read-aloud text.
 
-- `OpenAnkiIOS/`：SwiftUI 页面、Observation 数据状态、离线 WebKit 卡片显示。
-- `Core/`：可独立测试的 Swift Package，包含模型、调度、原子保存、导入、模板和备份。
-- `Config/Info.plist`：`.apkg` / `.openanki` 文件类型注册。
-- `OpenAnkiIOSUITests/`：模拟器交互测试。
+For N4, the kana field supplies the Japanese word pronunciation. Japanese text before the slash in each example is read aloud; the Chinese translation after the slash remains visible. Speech always uses a Japanese voice regardless of the interface language. A few recordings are missing from the original package, so device speech provides a fallback. If no Japanese voice is available, the app prompts you to install one. Generic Anki `{{tts ...}}` template tags are not implemented yet.
 
-文件格式参考相邻的 `../anki` 源码中的 schema、模板与包格式定义；未修改桌面 Anki 工程。依赖固定为 [ZIPFoundation 0.9.20](https://github.com/weichsel/ZIPFoundation/tree/0.9.20)（MIT）和 [Zstandard 1.5.7](https://github.com/facebook/zstd/tree/v1.5.7)（BSD / GPL 双许可证）。
+Text imports use two required columns, front and back, plus an optional third column containing space-separated tags. CSV supports quoted commas and multiline fields; TSV uses tabs. Anki's `#separator`, `#html`, and `#deck` headers are recognized.
 
-## 验证
+## Backups and data storage
 
-本机验证通过：Xcode 26 的 iOS 模拟器 Debug 构建、iOS 真机目标 Release 编译（未签名）、12 项核心测试、4 项模拟器界面测试。用户提供的 `N4.apkg` 实测导入 2,216 张卡片与 1,100 个媒体文件，完成完整备份往返验证，并在 iPad Pro 模拟器实际导入。原始牌组文件未修改，也未加入仓库。
+Restoring an `.openanki` backup replaces the current collection after confirmation. Export a current backup before restoring. Backups include media, settings, and progress. Older backups also receive the starter-content migration and guide localization when restored.
+
+A collection that cannot be read is never recreated or overwritten. Failed saves do not advance review progress. Media is installed before the collection is committed atomically; duplicate imports do not copy unused media folders.
+
+## Supported scope
+
+OpenAnki uses an independent SM-2 style scheduler. It does not integrate Anki's Rust backend or FSRS. Imported templates are rendered into independent cards, so editing one card does not update other cards from the same note.
+
+Image occlusion, custom JavaScript, MathJax, external network resources, AnkiWeb sync, and `.colpkg` files are not supported yet. Complex templates depending on those features may need simplifying in desktop Anki.
+
+Import limits are 256 MB per decompressed collection database, 64 MB per media file, 1 GB of total media, 100,000 cards per package, and 20,000 media files.
+
+## Code layout
+
+- `OpenAnkiIOS/`: SwiftUI views, Observation state, offline WebKit card rendering, and AVFoundation playback.
+- `Core/`: An independently testable Swift package containing models, scheduling, atomic persistence, importers, templates, backups, built-in content migration, and localization resources.
+- `Config/Info.plist`: `.apkg` and `.openanki` document type registration.
+- `OpenAnkiIOSUITests/`: Simulator interaction tests.
+- `Scripts/`: Icon, fixture, and localization resource generators.
+
+Package and template formats were checked against the adjacent `../anki` source tree. The desktop Anki project is unchanged. Dependencies are pinned to [ZIPFoundation 0.9.20](https://github.com/weichsel/ZIPFoundation/tree/0.9.20) (MIT) and [Zstandard 1.5.7](https://github.com/facebook/zstd/tree/v1.5.7) (BSD / GPL dual licensing).
+
+## Validation
+
+Local validation passed with Xcode 26: an iOS simulator Debug build, an unsigned physical-device Release build, 22 Core tests, and 7 simulator UI tests. Tests cover starter-content migration, bilingual guide content, language changes and persistence, unsupported-language fallback, original imported content, review and undo, imports, backups, and Japanese audio.
+
+The supplied `N4.apkg` imports 2,216 cards and 1,100 media files and passes a full backup round trip. iPhone simulator tests verify word recordings, speech fallback, Japanese examples, and Chinese meanings. The iPad layout has also been checked. The original deck file is unchanged and is not included in the repository. The local-deck Core and UI tests skip when no deck path is supplied.
 
 ```sh
 swift test --package-path Core
 
-# 可选：额外验证本机真实牌组的导入、媒体和完整备份往返
+# Optional: validate a local deck's import, media, and full backup round trip.
 OPENANKI_TEST_APKG=/path/to/deck.apkg swift test --package-path Core
 
 xcodebuild -project OpenAnkiIOS.xcodeproj -scheme OpenAnkiIOS \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   -derivedDataPath DerivedData -parallel-testing-enabled NO \
   CODE_SIGNING_ALLOWED=NO test
+
+# Optional: verify N4 recordings, Japanese speech, and original meanings on iOS.
+xcodebuild -project OpenAnkiIOS.xcodeproj -scheme OpenAnkiIOS \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -derivedDataPath DerivedData -parallel-testing-enabled NO \
+  OPENANKI_TEST_APKG=/path/to/N4.apkg CODE_SIGNING_ALLOWED=NO test
 ```
 
-固定的测试牌组是原创小样本，包含旧版 / 新版包、反向、填空、图片、音频和无效媒体路径。Python fixture 生成脚本仅用于更新样本，构建与测试无需 Python。UI 测试使用独立测试目录，不影响正常运行的牌组。
+Bundled test packages are small, original fixtures covering legacy and modern formats, reversed cards, cloze deletions, images, audio, and invalid media paths. The Python fixture generator is only needed to regenerate those fixtures; Python is not required to build or test the app. UI tests use a separate data directory and leave normal study data untouched.

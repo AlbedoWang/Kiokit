@@ -7,7 +7,7 @@ let size = 1024
 let context = CGContext(data: nil, width: size, height: size, bitsPerComponent: 8, bytesPerRow: size * 4, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue)!
 NSGraphicsContext.saveGraphicsState()
 NSGraphicsContext.current = NSGraphicsContext(cgContext: context, flipped: false)
-NSGradient(starting: NSColor(red: 0.19, green: 0.49, blue: 0.41, alpha: 1), ending: NSColor(red: 0.08, green: 0.28, blue: 0.25, alpha: 1))!.draw(in: NSBezierPath(rect: NSRect(x: 0, y: 0, width: size, height: size)), angle: -55)
+NSGradient(starting: NSColor(red: 0.977, green: 0.977, blue: 0.969, alpha: 1), ending: NSColor(red: 0.941, green: 0.937, blue: 0.925, alpha: 1))!.draw(in: NSBezierPath(rect: NSRect(x: 0, y: 0, width: size, height: size)), angle: -55)
 
 NSGraphicsContext.saveGraphicsState()
 let rotation = AffineTransform(translationByX: 512, byY: 512)
@@ -16,15 +16,15 @@ transform.rotate(byDegrees: -12)
 transform.translate(x: -512, y: -512)
 (transform as NSAffineTransform).concat()
 let rear = NSBezierPath(roundedRect: NSRect(x: 218, y: 206, width: 546, height: 608), xRadius: 67, yRadius: 67)
-NSColor.white.withAlphaComponent(0.35).setStroke()
+NSColor(red: 0.851, green: 0.467, blue: 0.341, alpha: 0.45).setStroke()
 rear.lineWidth = 22
 rear.stroke()
 NSGraphicsContext.restoreGraphicsState()
 
 let card = NSBezierPath(roundedRect: NSRect(x: 276, y: 196, width: 522, height: 618), xRadius: 64, yRadius: 64)
-NSColor(red: 0.96, green: 0.97, blue: 0.93, alpha: 1).setFill()
+NSColor.white.setFill()
 card.fill()
-let accent = NSColor(red: 0.13, green: 0.40, blue: 0.34, alpha: 1)
+let accent = NSColor(red: 0.851, green: 0.467, blue: 0.341, alpha: 1)
 let star = NSBezierPath()
 let center = NSPoint(x: 537, y: 555)
 for index in 0..<8 {

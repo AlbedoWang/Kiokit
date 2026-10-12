@@ -3,4 +3,5 @@
 DerivedData*/
 *.xcuserstate
 .DS_Store
-
+# Local user-provided test deck.
+N4.apkg

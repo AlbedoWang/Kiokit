@@ -50,6 +50,10 @@ final class ImportAndPersistenceTests: XCTestCase {
         XCTAssertEqual(merged.skipped, 4)
         XCTAssertEqual(merged.snapshot.cards[0].stage, .review)
         XCTAssertEqual(merged.snapshot.decks.count, 2)
+        let repository = CollectionRepository(directory: try temporaryDirectory())
+        try repository.commit(first, snapshot: current)
+        try repository.commit(second, snapshot: merged.snapshot)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(at: repository.mediaURL, includingPropertiesForKeys: nil).count, 1)
     }
 
     func testBackupRoundTripIncludesProgressAndMedia() throws {
@@ -126,7 +130,7 @@ final class ImportAndPersistenceTests: XCTestCase {
         defer { imported.cleanup() }
         XCTAssertGreaterThan(imported.snapshot.cards.count, 0)
         XCTAssertTrue(imported.snapshot.cards.allSatisfy { !$0.front.isEmpty && !$0.back.isEmpty })
-        XCTAssertTrue(imported.warnings.isEmpty, imported.warnings.joined(separator: "\n"))
+        XCTAssertTrue(imported.warnings.isEmpty, imported.warnings.map { $0.localized() }.joined(separator: "\n"))
         print("Imported user deck: \(imported.snapshot.decks.map(\.name)), \(imported.snapshot.cards.count) cards")
         let repository = CollectionRepository(directory: try temporaryDirectory())
         try repository.commit(imported, snapshot: imported.snapshot)
@@ -136,11 +140,24 @@ final class ImportAndPersistenceTests: XCTestCase {
         let media = try FileManager.default.contentsOfDirectory(at: repository.mediaURL.appendingPathComponent(mediaFolder), includingPropertiesForKeys: nil)
         print("Extracted media files: \(media.count)")
         XCTAssertGreaterThan(media.count, 0)
+        if URL(fileURLWithPath: path).lastPathComponent == "N4.apkg" {
+            XCTAssertEqual(loaded.cards.count, 2_216)
+            XCTAssertEqual(media.count, 1_100)
+            let example = try XCTUnwrap(loaded.cards.first { $0.pronunciation?.word == "ああ" })
+            XCTAssertTrue(example.backPreview.contains("那样，那么"))
+            XCTAssertTrue(example.backPreview.contains("你那么做的话"))
+            XCTAssertTrue(example.backPreview.contains("ああ言えばこう言う"))
+            XCTAssertEqual(example.pronunciation?.examples.first, "ああすると、こちらは困る。")
+            XCTAssertTrue(CardAudio.filenames(in: example.back).contains("ああ.mp3"))
+            XCTAssertTrue(media.contains { $0.lastPathComponent == "ああ.mp3" })
+            XCTAssertTrue(loaded.cards.filter { $0.pronunciation != nil }.count > 2_000)
+        }
         let file = try temporaryDirectory().appendingPathComponent("user-deck.openanki")
         try repository.backup(loaded).write(to: file)
         let restored = try DeckImporter.load(url: file)
         defer { restored.cleanup() }
         XCTAssertEqual(restored.snapshot.cards.count, loaded.cards.count)
+        XCTAssertEqual(restored.snapshot.cards.map(\.pronunciation), loaded.cards.map(\.pronunciation))
         let restoredMedia = try FileManager.default.contentsOfDirectory(at: XCTUnwrap(restored.stagingDirectory).appendingPathComponent("Media/\(mediaFolder)"), includingPropertiesForKeys: nil)
         XCTAssertEqual(restoredMedia.count, media.count)
     }

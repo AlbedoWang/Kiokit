@@ -2,7 +2,7 @@
 //  OpenAnkiIOSApp.swift
 //  OpenAnkiIOS
 //
-//  Created by 健 on 10/11/26.
+//  Created by Jian on October 11, 2026.
 //
 
 import SwiftUI
@@ -11,6 +11,8 @@ import OpenAnkiCore
 @main
 struct OpenAnkiIOSApp: App {
     @State private var store: CollectionStore
+    @State private var audio = CardAudioController()
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         var directory: URL?
@@ -29,8 +31,13 @@ struct OpenAnkiIOSApp: App {
         WindowGroup {
             ContentView()
                 .environment(store)
+                .environment(audio)
+                .environment(\.locale, store.uiLocale)
                 .tint(AnkiTheme.tint)
                 .preferredColorScheme(store.settings.appearance == "light" ? .light : store.settings.appearance == "dark" ? .dark : nil)
+                .onChange(of: scenePhase) { _, phase in
+                    if phase != .active { audio.stop() }
+                }
         }
     }
 }

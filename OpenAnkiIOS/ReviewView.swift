@@ -23,30 +23,31 @@ struct ReviewView: View {
                         HStack {
                             Text(store.deck(card.deckID)?.name ?? "").lineLimit(1)
                             Spacer()
-                            Text("已完成 \(reviewed) 次").monospacedDigit()
+                            Text(store.text("已完成 \(reviewed) 次")).monospacedDigit()
                         }.font(.caption).foregroundStyle(.secondary)
                         ProgressView(value: min(Double(reviewed), Double(max(1, initialCount))), total: Double(max(1, initialCount)))
                             .tint(AnkiTheme.tint)
                     }.padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 20)
                     VStack(spacing: 12) {
                         HStack {
-                            Text(revealed ? "答案" : "回想一下")
+                            Text(revealed ? store.text("答案") : store.text("回想一下"))
                                 .font(.caption.weight(.semibold)).tracking(2).foregroundStyle(.secondary)
                             Spacer()
-                            Text(card.stage.title).font(.caption2.weight(.medium))
+                            Text(store.text(key: card.stage.title)).font(.caption2.weight(.medium))
                                 .foregroundStyle(AnkiTheme.tint).padding(.horizontal, 10).padding(.vertical, 5)
                                 .background(AnkiTheme.tint.opacity(0.08), in: Capsule())
                         }
-                        CardContentView(card: card, answer: revealed)
+                        CardContentView(card: card, answer: revealed, autoPlayAudio: true)
                             .id("\(card.id)-\(revealed)")
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     .padding(24)
-                    .background(AnkiTheme.surface, in: RoundedRectangle(cornerRadius: 28))
+                    .background(AnkiTheme.surface, in: RoundedRectangle(cornerRadius: 18))
+                    .overlay { RoundedRectangle(cornerRadius: 18).strokeBorder(AnkiTheme.border, lineWidth: 0.75) }
                     .padding(.horizontal, 20)
                     .padding(.bottom, 20)
                     VStack(spacing: 14) {
-                        Text(revealed ? "根据回忆的难易程度评分" : "先在心里回忆答案，再翻开卡片")
+                        Text(revealed ? store.text("根据回忆的难易程度评分") : store.text("先在心里回忆答案，再翻开卡片"))
                             .font(.caption).foregroundStyle(.secondary)
                         if revealed {
                             ViewThatFits(in: .horizontal) {
@@ -54,7 +55,7 @@ struct ReviewView: View {
                                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) { ratingButtons(card) }
                             }
                         } else {
-                            PrimaryButton(title: "显示答案", symbol: "arrow.turn.down.right") { revealed = true }
+                            PrimaryButton(title: store.text("显示答案"), symbol: "arrow.turn.down.right") { revealed = true }
                                 .keyboardShortcut(.space, modifiers: [])
                                 .accessibilityIdentifier("showAnswer")
                         }
@@ -65,10 +66,13 @@ struct ReviewView: View {
             }
             .frame(maxWidth: 900).frame(maxWidth: .infinity)
             .background(AnkiTheme.background)
-            .navigationTitle(deckID.flatMap { store.deck($0)?.name } ?? "专注学习")
+            .navigationTitle(deckID.flatMap { store.deck($0)?.name } ?? store.text("专注学习"))
             .navigationBarTitleDisplayMode(.inline)
+            .foregroundStyle(AnkiTheme.ink)
+            .toolbarBackground(AnkiTheme.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button("完成") { dismiss() }.accessibilityIdentifier("finishStudy") }
+                ToolbarItem(placement: .topBarLeading) { Button(store.text("完成")) { dismiss() }.accessibilityIdentifier("finishStudy") }
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button {
                         if store.undo() {
@@ -80,11 +84,11 @@ struct ReviewView: View {
                         }
                     } label: { Image(systemName: "arrow.uturn.backward") }
                     .disabled(!store.canUndo || lastAnsweredID == nil)
-                    .accessibilityLabel("撤销上次评分").accessibilityIdentifier("undoReview")
+                    .accessibilityLabel(store.text("撤销上次评分")).accessibilityIdentifier("undoReview")
                     if current != nil {
                         Menu {
-                            Button("编辑卡片", systemImage: "pencil") { editing = true }
-                            Button("暂停此卡片", systemImage: "pause") {
+                            Button(store.text("编辑卡片"), systemImage: "pencil") { editing = true }
+                            Button(store.text("暂停此卡片"), systemImage: "pause") {
                                 if let currentID { store.toggleSuspended(currentID) }
                                 advance()
                             }
@@ -99,8 +103,8 @@ struct ReviewView: View {
                 }
             }
             .sheet(isPresented: $editing) { if let current { CardEditorView(card: current) } }
-            .alert("操作未完成", isPresented: Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
-                Button("好", role: .cancel) { store.errorMessage = nil }
+            .alert(store.text("操作未完成"), isPresented: Binding(get: { store.errorMessage != nil }, set: { if !$0 { store.errorMessage = nil } })) {
+                Button(store.text("好"), role: .cancel) { store.errorMessage = nil }
             } message: { Text(store.errorMessage ?? "") }
         }
     }
@@ -116,13 +120,14 @@ struct ReviewView: View {
                 }
             } label: {
                 VStack(spacing: 7) {
-                    Text(Scheduler.intervalLabel(for: card, rating: rating)).font(.caption2).lineLimit(1)
-                    Text(rating.title).font(.subheadline.bold())
+                    Text(Scheduler.intervalLabel(for: card, rating: rating, locale: store.uiLocale)).font(.caption2).lineLimit(1)
+                    Text(store.text(key: rating.title)).font(.subheadline.weight(.medium))
                 }
                 .frame(minWidth: 65, maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .foregroundStyle(AnkiTheme.ratingColor(rating))
-                .background(AnkiTheme.ratingColor(rating).opacity(0.10), in: RoundedRectangle(cornerRadius: 16))
+                .background(AnkiTheme.surface, in: RoundedRectangle(cornerRadius: 12))
+                .overlay { RoundedRectangle(cornerRadius: 12).strokeBorder(AnkiTheme.ratingColor(rating).opacity(0.3), lineWidth: 0.75) }
             }.buttonStyle(.plain)
                 .accessibilityIdentifier("rating\(rating.rawValue)")
                 .keyboardShortcut(KeyEquivalent(Character("\(rating.rawValue)")), modifiers: [])
@@ -136,19 +141,19 @@ struct ReviewView: View {
                 Image(systemName: "checkmark.seal.fill")
                     .font(.system(size: 76, weight: .light)).foregroundStyle(AnkiTheme.tint)
                     .padding(28).background(AnkiTheme.tint.opacity(0.07), in: Circle())
-                Text("这一轮，完成了。")
-                    .font(.system(.title, design: .rounded, weight: .bold))
-                Text(reviewed > 0 ? "你完成了 \(reviewed) 次回忆练习。\n让记忆沉淀一下，稍后再见。" : "目前没有到期的卡片。\n添加新卡片，或稍后再来复习。")
+                Text(store.text("这一轮，完成了。"))
+                    .font(AnkiTheme.editorial(30))
+                Text(reviewed > 0 ? store.text("你完成了 \(reviewed) 次回忆练习。\n让记忆沉淀一下，稍后再见。") : store.text("目前没有到期的卡片。\n添加新卡片，或稍后再来复习。"))
                     .font(.subheadline).foregroundStyle(.secondary).multilineTextAlignment(.center).lineSpacing(6)
                 if let next = store.cards.filter({ !$0.isSuspended && $0.stage != .new && $0.due > context.date && (deckID == nil || $0.deckID == deckID) }).map(\.due).min() {
-                    Label("下次复习 \(next.formatted(date: .omitted, time: .shortened))", systemImage: "clock")
+                    Label(store.text("下次复习 \(next.formatted(Date.FormatStyle(date: .omitted, time: .shortened).locale(store.uiLocale)))"), systemImage: "clock")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
                 if !store.queue(deckID: deckID, now: context.date).isEmpty {
-                    PrimaryButton(title: "继续到期的卡片", symbol: "arrow.right") { advance() }
+                    PrimaryButton(title: store.text("继续到期的卡片"), symbol: "arrow.right") { advance() }
                 }
-                PrimaryButton(title: "返回牌组", symbol: "arrow.left") { dismiss() }
+                PrimaryButton(title: store.text("返回牌组"), symbol: "arrow.left") { dismiss() }
             }.padding(32)
         }
     }

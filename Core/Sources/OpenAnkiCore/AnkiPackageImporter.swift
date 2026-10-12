@@ -289,6 +289,7 @@ public enum AnkiPackageImporter {
                                      isHTML: true, css: model.css, mediaFolder: folder,
                                      sourceKey: "anki:\(SQLiteReader.text(row, 2)):\(ordinal)")
                 card.isSuspended = sqlite3_column_int(row, 6) == -1
+                card.pronunciation = Pronunciation.japanese(fields: fields)
                 snapshot.cards.append(card)
             }
             guard !snapshot.cards.isEmpty else { throw CollectionError.invalid(skipped > 0 ? "牌组中仅包含暂不支持的卡片模板（如图像遮挡）。" : "牌组中没有卡片。") }
@@ -322,7 +323,7 @@ public enum AnkiPackageImporter {
                 guard total <= 1_073_741_824 else { throw CollectionError.invalid("媒体总大小超过 1 GB。") }
                 try media.write(to: destination.appendingPathComponent(name))
             }
-            var warnings: [String] = []
+            var warnings: [LocalizedMessage] = []
             if skipped > 0 { warnings.append("跳过 \(skipped) 张不支持的模板卡片（如图像遮挡）。") }
             if hasCustomScript { warnings.append("自定义模板的 JavaScript 不会执行，相关交互可能无法显示。") }
             try snapshot.validate()

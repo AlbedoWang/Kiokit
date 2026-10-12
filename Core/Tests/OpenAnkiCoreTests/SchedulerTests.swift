@@ -33,7 +33,7 @@ final class SchedulerTests: XCTestCase {
         XCTAssertEqual(hard.ease, 1.3)
         XCTAssertLessThan(hard.due, good.due)
         XCTAssertLessThan(good.due, easy.due)
-        XCTAssertEqual(Scheduler.intervalLabel(for: card, rating: .again, now: now), "1 分钟")
+        XCTAssertEqual(Scheduler.intervalLabel(for: card, rating: .again, now: now, locale: InterfaceLanguage.simplifiedChinese.locale()), "1 分钟")
     }
 
     func testQueueHonorsDailyLimitSuspensionAndDueDate() {
