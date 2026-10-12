@@ -31,7 +31,7 @@ final class LocalizationTests: XCTestCase {
         let settings = try JSONDecoder().decode(StudySettings.self, from: old)
         XCTAssertNil(settings.interfaceLanguage)
         XCTAssertNil(settings.autoPlayAudio)
-        let deck = Deck(name: "日本语红宝书::N4")
+        let deck = Deck(name: "Imported Japanese vocabulary")
         let card = Flashcard(deckID: deck.id, front: "挨拶 / あいさつ", back: "寒暄；打招呼。\n例：おはようございます。")
         var snapshot = CollectionSnapshot(decks: [deck], cards: [card])
         snapshot.settings.interfaceLanguage = InterfaceLanguage.english.rawValue
@@ -42,9 +42,24 @@ final class LocalizationTests: XCTestCase {
         XCTAssertEqual(restored.cards[0].back, card.back)
     }
 
-    func testSchedulerIntervalsRespectSelectedLanguage() {
-        let card = Flashcard(deckID: UUID(), front: "Q", back: "A")
-        XCTAssertEqual(Scheduler.intervalLabel(for: card, rating: .again, locale: InterfaceLanguage.english.locale()), "1 min")
-        XCTAssertEqual(Scheduler.intervalLabel(for: card, rating: .again, locale: InterfaceLanguage.simplifiedChinese.locale()), "1 分钟")
+    func testUpstreamIntervalDescriptionsRespectBackendLanguage() throws {
+        let states: AnkiJSON = ["current": ["normal": ["new": ["position": 1]]],
+            "again": ["normal": ["learning": ["scheduledSecs": 60, "remainingSteps": 2]]],
+            "hard": ["normal": ["learning": ["scheduledSecs": 330, "remainingSteps": 2]]],
+            "good": ["normal": ["learning": ["scheduledSecs": 600, "remainingSteps": 1]]],
+            "easy": ["normal": ["review": ["scheduledDays": 4, "easeFactor": .number(2.5)]]]]
+        func labels(_ language: String) throws -> [String] {
+            let root = URL.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            let collection = try AnkiCollection(directory: root, preferredLanguages: [language])
+            defer { try? collection.close(); try? FileManager.default.removeItem(at: root) }
+            return try collection.describeIntervals(states)
+        }
+        let english = try labels("en")
+        let chinese = try labels("zh-CN")
+        XCTAssertEqual(english.count, 4)
+        XCTAssertEqual(chinese.count, 4)
+        XCTAssertNotEqual(english, chinese)
+        XCTAssertTrue(english[0].contains("1"))
+        XCTAssertTrue(chinese[0].contains("1"))
     }
 }

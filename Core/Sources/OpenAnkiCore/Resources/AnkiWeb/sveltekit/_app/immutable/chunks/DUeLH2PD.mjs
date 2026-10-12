@@ -1,0 +1,1 @@
+import{$ as i,s as l,g as a,I as o}from"./DystvEAy.mjs";function f(s){var r=o(0);return function(){return arguments.length===1?(l(r,a(r)+1),arguments[0]):(a(r),s())}}function v(s,r){var t;var e=(t=s.$$events)==null?void 0:t[r.type],n=i(e)?e.slice():e==null?[]:[e];for(var u of n)u.call(this,r)}export{v as b,f as r};

@@ -1,0 +1,4 @@
+module AnkiBackendFFI {
+    header "openanki_backend.h"
+    export *
+}

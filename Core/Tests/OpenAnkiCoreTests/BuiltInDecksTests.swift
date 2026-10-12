@@ -9,7 +9,7 @@ final class BuiltInDecksTests: XCTestCase {
         XCTAssertEqual(snapshot.cards.count, 4)
         XCTAssertTrue(snapshot.cards.allSatisfy { $0.builtInID != nil && $0.tags == ["Guide"] })
         let original = snapshot.cards[0]
-        snapshot.cards[0] = Scheduler.answer(original, rating: .easy)
+        snapshot.cards[0] = reviewFixture(original, rating: .easy)
         snapshot.reviews = [ReviewRecord(card: original, rating: .easy, date: .now, duration: 5)]
         let chinese = BuiltInDecks.updating(snapshot, locale: InterfaceLanguage.simplifiedChinese.locale())
         XCTAssertTrue(chinese.changed)
@@ -33,7 +33,7 @@ final class BuiltInDecksTests: XCTestCase {
         let swift = Deck(name: "Swift 随手记", symbol: "swift")
         let guide = Deck(name: "开始使用 Anki", symbol: "sparkles")
         let importedEnglish = Deck(name: "日常英语", symbol: "textformat.abc")
-        let n4 = Deck(name: "日本语红宝书::N4")
+        let importedDeck = Deck(name: "Imported Japanese vocabulary")
         let word = Flashcard(deckID: english.id, front: "serendipity", back: "意外发现美好事物的幸运。\n\nFinding this little bookshop was pure serendipity.", tags: ["词汇"])
         let programming = Flashcard(deckID: swift.id, front: "Optional 表示什么？", back: "一个值可能存在，也可能是 nil。\n用 if let 或 guard let 安全解包。", tags: ["基础"])
         let custom = Flashcard(deckID: swift.id, front: "My own question", back: "My own answer")
@@ -42,10 +42,10 @@ final class BuiltInDecksTests: XCTestCase {
         importedWord.id = UUID()
         importedWord.deckID = importedEnglish.id
         importedWord.sourceKey = "imported:0"
-        let japanese = Flashcard(deckID: n4.id, front: "挨拶 / あいさつ", back: "寒暄；打招呼。", sourceKey: "n4:0")
-        let reviewed = Scheduler.answer(japanese, rating: .easy)
+        let japanese = Flashcard(deckID: importedDeck.id, front: "挨拶 / あいさつ", back: "寒暄；打招呼。", sourceKey: "imported:1")
+        let reviewed = reviewFixture(japanese, rating: .easy)
         let review = ReviewRecord(card: japanese, rating: .easy, date: .now, duration: 6)
-        let snapshot = CollectionSnapshot(decks: [english, swift, guide, importedEnglish, n4], cards: [word, programming, custom, help, importedWord, reviewed], reviews: [ReviewRecord(card: word, rating: .good, date: .now, duration: 2), review])
+        let snapshot = CollectionSnapshot(decks: [english, swift, guide, importedEnglish, importedDeck], cards: [word, programming, custom, help, importedWord, reviewed], reviews: [ReviewRecord(card: word, rating: .good, date: .now, duration: 2), review])
         // Encoding nil provenance reproduces the fields omitted by older builds.
         let legacy = try JSONDecoder().decode(CollectionSnapshot.self, from: JSONEncoder().encode(snapshot))
         let migrated = BuiltInDecks.updating(legacy, locale: InterfaceLanguage.english.locale()).snapshot
@@ -77,4 +77,15 @@ final class BuiltInDecksTests: XCTestCase {
         XCTAssertTrue(BuiltInDecks.updating(snapshot, locale: InterfaceLanguage.simplifiedChinese.locale()).snapshot.decks.isEmpty)
         XCTAssertTrue(BuiltInDecks.updating(CollectionSnapshot(), locale: InterfaceLanguage.english.locale()).snapshot.decks.isEmpty)
     }
+    /// Authored legacy progress used to verify localization does not mutate it.
+    private func reviewFixture(_ original: Flashcard, rating: ReviewRating) -> Flashcard {
+        var card = original
+        card.stage = .review
+        card.interval = 4
+        card.repetitions = 1
+        card.lastReviewedAt = .now
+        card.due = Date.now.addingTimeInterval(4 * 86400)
+        return card
+    }
+
 }

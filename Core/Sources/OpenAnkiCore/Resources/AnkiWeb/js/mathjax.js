@@ -1,0 +1,1 @@
+"use strict";const packages=["noerrors","mathtools"];function packagesForLoading(s){return s.map(a=>`[tex]/${a}`)}window.MathJax={tex:{displayMath:[["\\[","\\]"]],processEscapes:!1,processEnvironments:!1,processRefs:!1,packages:{"[+]":packages,"[-]":["textmacros"]}},loader:{load:packagesForLoading(packages),paths:{mathjax:"/_anki/js/vendor/mathjax"}},startup:{typeset:!1}};

@@ -2,6 +2,15 @@
 .swiftpm/
 DerivedData*/
 *.xcuserstate
+xcuserdata/
+Config/Local.xcconfig
 .DS_Store
-# Local user-provided test deck.
-N4.apkg
+# Local user-provided test decks.
+LocalDecks/
+/*.apkg
+/*.colpkg
+Backend/target/
+Backend/generated/
+Core/AnkiBackendFFI.xcframework/
+__pycache__/
+*.pyc

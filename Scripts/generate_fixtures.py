@@ -1,118 +1,94 @@
-"""Create small, original Anki-format fixtures. Requires the local libzstd.
+"""Generate original fixtures with the pinned official Anki backend.
 
-Fixtures are committed, so building and testing do not require Python or zstd CLI.
-The schemas and protobuf field numbers follow the upstream Anki file format.
+Run with:
+    uv run --no-project --with anki==26.9.3 python Scripts/generate_fixtures.py
+
+No collection schemas, template rules, scheduling, ZIP/protobuf encoders, or
+compression algorithms are implemented here. Anki creates and exports fixtures.
 """
 import base64
-import ctypes
-import ctypes.util
 import io
-import json
 from pathlib import Path
-import sqlite3
+import shutil
 import tempfile
+import time
 import wave
-import zipfile
 
-DESTINATION = Path(__file__).resolve().parents[1] / "Core/Tests/OpenAnkiCoreTests/Fixtures"
-ZSTD = ctypes.CDLL(ctypes.util.find_library("zstd") or "/opt/homebrew/lib/libzstd.dylib")
-ZSTD.ZSTD_compressBound.argtypes = [ctypes.c_size_t]
-ZSTD.ZSTD_compressBound.restype = ctypes.c_size_t
-ZSTD.ZSTD_compress.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int]
-ZSTD.ZSTD_compress.restype = ctypes.c_size_t
+from anki import buildinfo
+from anki.collection import Collection
+from anki.scheduler_pb2 import CardAnswer
 
+ROOT = Path(__file__).resolve().parents[1]
+DESTINATION = ROOT / "Core/Tests/OpenAnkiCoreTests/Fixtures"
 
-def compress(data):
-    output = ctypes.create_string_buffer(ZSTD.ZSTD_compressBound(len(data)))
-    size = ZSTD.ZSTD_compress(output, len(output), data, len(data), 3)
-    return output.raw[:size]
+def media(collection):
+    image = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a5C8AAAAASUVORK5CYII=")
+    sound = io.BytesIO()
+    with wave.open(sound, "wb") as output:
+        output.setnchannels(1)
+        output.setsampwidth(2)
+        output.setframerate(8000)
+        output.writeframes(b"\0\0" * 800)
+    collection.media.write_data("sample.png", image)
+    collection.media.write_data("sample.wav", sound.getvalue())
 
+def add(collection, model, deck_id, fields):
+    note = collection.new_note(model)
+    note.fields = fields
+    collection.add_note(note, deck_id)
+    return note
 
-def varint(value):
-    output = bytearray()
-    while value >= 128:
-        output.append((value & 127) | 128)
-        value >>= 7
-    output.append(value)
-    return bytes(output)
+def export_package(collection, path, legacy):
+    collection._backend.export_anki_package(
+        out_path=str(path),
+        options={"with_scheduling": True, "with_deck_configs": True, "with_media": True, "legacy": legacy},
+        limit={"whole_collection": {}},
+    )
 
-
-def message(fields):
-    output = bytearray()
-    for number, value in fields:
-        if isinstance(value, int):
-            output += varint(number << 3) + varint(value)
-        else:
-            if isinstance(value, str):
-                value = value.encode()
-            output += varint((number << 3) | 2) + varint(len(value)) + value
-    return bytes(output)
-
-
-MODELS = {
-    "10": {"name": "Basic and reverse", "type": 0, "css": ".card { font-size: 24px; }", "flds": [{"name": "Front", "ord": 0}, {"name": "Back", "ord": 1}], "tmpls": [
-        {"ord": 0, "qfmt": "{{Front}}", "afmt": "{{FrontSide}}<hr>{{Back}}"},
-        {"ord": 1, "qfmt": "{{Back}}", "afmt": "{{FrontSide}}<hr>{{Front}}"},
-    ]},
-    "20": {"name": "Cloze", "type": 1, "css": ".cloze { font-weight: bold; }", "flds": [{"name": "Text", "ord": 0}, {"name": "Extra", "ord": 1}], "tmpls": [
-        {"ord": 0, "qfmt": "{{cloze:Text}}", "afmt": "{{cloze:Text}}<hr>{{Extra}}"},
-    ]},
-}
-
-
-def generate(filename, modern=False, unsafe=False):
+def main():
+    assert buildinfo.version == "26.09.3"
+    assert buildinfo.buildhash.startswith("29bb700b")
+    DESTINATION.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as directory:
-        path = Path(directory) / "collection.sqlite"
-        db = sqlite3.connect(path)
-        db.executescript("""
-            CREATE TABLE col (ver INTEGER, decks TEXT, models TEXT);
-            CREATE TABLE notes (id INTEGER PRIMARY KEY, guid TEXT, mid INTEGER, flds TEXT, tags TEXT);
-            CREATE TABLE cards (id INTEGER PRIMARY KEY, nid INTEGER, did INTEGER, ord INTEGER, queue INTEGER);
-        """)
-        db.execute("INSERT INTO col VALUES (?, ?, ?)", (18 if modern else 11, json.dumps({"1": {"name": "Languages::Cities"}, "2": {"name": "Cloze"}}), json.dumps(MODELS)))
-        if modern:
-            db.executescript("""
-                CREATE TABLE decks (id INTEGER PRIMARY KEY, name TEXT);
-                CREATE TABLE notetypes (id INTEGER PRIMARY KEY, name TEXT, config BLOB);
-                CREATE TABLE fields (ntid INTEGER, ord INTEGER, name TEXT);
-                CREATE TABLE templates (ntid INTEGER, ord INTEGER, config BLOB);
-            """)
-            db.executemany("INSERT INTO decks VALUES (?, ?)", [(1, "Languages\x1fCities"), (2, "Cloze")])
-            for key, model in MODELS.items():
-                db.execute("INSERT INTO notetypes VALUES (?, ?, ?)", (int(key), model["name"], message([(1, model["type"]), (3, model["css"])])))
-                for field in model["flds"]:
-                    db.execute("INSERT INTO fields VALUES (?, ?, ?)", (int(key), field["ord"], field["name"]))
-                for template in model["tmpls"]:
-                    db.execute("INSERT INTO templates VALUES (?, ?, ?)", (int(key), template["ord"], message([(1, template["qfmt"]), (2, template["afmt"])])))
-        db.executemany("INSERT INTO notes VALUES (?, ?, ?, ?, ?)", [
-            (100, "cities-basic", 10, 'What is the capital of France?<img src="pixel.png">[sound:tone.wav]\x1fParis', " geography "),
-            (200, "cities-cloze", 20, "{{c1::London::city}} is the capital of {{c2::England}}.\x1fUnited Kingdom", " geography cloze "),
+        collection = Collection(str(Path(directory) / "collection.anki2"))
+        basic_deck = collection.decks.id("Basics")
+        cloze_deck = collection.decks.id("Cloze")
+        media(collection)
+        add(collection, collection.models.by_name("Basic"), basic_deck, [
+            "What is the capital of France?",
+            'Paris <img src="sample.png"> [sound:sample.wav]',
         ])
-        db.executemany("INSERT INTO cards VALUES (?, ?, ?, ?, ?)", [(1001, 100, 1, 0, 0), (1002, 100, 1, 1, -1 if modern else 0), (2001, 200, 2, 0, 0), (2002, 200, 2, 1, 0)])
-        db.commit()
-        db.close()
-        png = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a3ioAAAAASUVORK5CYII=")
-        sound = io.BytesIO()
-        with wave.open(sound, "wb") as writer:
-            writer.setparams((1, 2, 8000, 0, "NONE", "not compressed"))
-            writer.writeframes(b"\x00\x00" * 800)
-        media = [png, sound.getvalue()]
-        names = ["../outside.png" if unsafe else "pixel.png", "tone.wav"]
-        with zipfile.ZipFile(DESTINATION / filename, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            if modern:
-                archive.writestr("meta", message([(1, 3)]))
-                archive.writestr("collection.anki21b", compress(path.read_bytes()))
-                media_map = message([(1, message([(1, name), (2, len(data))])) for name, data in zip(names, media)])
-                archive.writestr("media", compress(media_map))
-            else:
-                archive.writestr("collection.anki2", path.read_bytes())
-                archive.writestr("media", json.dumps(dict(enumerate(names))))
-            for index, data in enumerate(media):
-                archive.writestr(str(index), compress(data) if modern else data)
-
+        add(collection, collection.models.by_name("Basic (and reversed card)"), basic_deck, ["Bonjour", "Hello"])
+        add(collection, collection.models.by_name("Cloze"), cloze_deck, ["Say {{c1::bonjour}} to {{c2::the world}}.", "A greeting"])
+        export_package(collection, DESTINATION / "legacy.apkg", True)
+        export_package(collection, DESTINATION / "modern.apkg", False)
+        collection.close()
+    shutil.copy2(DESTINATION / "modern.apkg", ROOT / "OpenAnkiIOSUITests/modern.apkg")
+    with tempfile.TemporaryDirectory() as directory:
+        collection = Collection(str(Path(directory) / "collection.anki2"))
+        deck = collection.decks.id("Backup native deck")
+        add(collection, collection.models.by_name("Basic"), deck, ["Backed-up question", "Backed-up answer"])
+        collection.decks.select(deck)
+        queued = collection._backend.get_queued_cards(fetch_limit=1, intraday_learning_only=False).cards[0]
+        collection._backend.answer_card(CardAnswer(
+            card_id=queued.card.id, current_state=queued.states.current, new_state=queued.states.easy,
+            rating=3, answered_at_millis=int(time.time() * 1000), milliseconds_taken=2000,
+        ))
+        collection._backend.export_collection_package(
+            out_path=str(ROOT / "OpenAnkiIOSUITests/backup.colpkg"), include_media=True, legacy=False,
+        )
+    with tempfile.TemporaryDirectory() as directory:
+        collection = Collection(str(Path(directory) / "collection.anki2"))
+        deck = collection.decks.id("Restored original deck")
+        add(collection, collection.models.by_name("Basic"), deck, ["Restored question", "原始答案"])
+        collection.decks.select(deck)
+        collection.set_config("openAnki.interface", {
+            "initialized": True,
+            "settings": {"dailyGoal": 200, "newCardsPerDay": 20, "appearance": "system", "interfaceLanguage": "zh-Hans"},
+        })
+        collection._backend.export_collection_package(
+            out_path=str(ROOT / "OpenAnkiIOSUITests/backup-zh.colpkg"), include_media=True, legacy=False,
+        )
 
 if __name__ == "__main__":
-    DESTINATION.mkdir(parents=True, exist_ok=True)
-    generate("legacy.apkg")
-    generate("modern.apkg", modern=True)
-    generate("unsafe-media.apkg", unsafe=True)
+    main()

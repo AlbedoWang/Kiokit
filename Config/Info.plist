@@ -1,24 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-    <key>CFBundleLocalizations</key><array><string>en</string><string>zh-Hans</string></array>
-    <key>LSSupportsOpeningDocumentsInPlace</key><true/>
-    <key>CFBundleDocumentTypes</key><array><dict>
-        <key>CFBundleTypeName</key><string>Anki Deck and OpenAnki Backup</string>
-        <key>CFBundleTypeRole</key><string>Viewer</string>
-        <key>LSHandlerRank</key><string>Alternate</string>
-        <key>LSItemContentTypes</key><array><string>net.anki.apkg</string><string>app.openanki.backup</string></array>
-    </dict></array>
-    <key>UTImportedTypeDeclarations</key><array><dict>
-        <key>UTTypeIdentifier</key><string>net.anki.apkg</string>
-        <key>UTTypeDescription</key><string>Anki Deck Package</string>
-        <key>UTTypeConformsTo</key><array><string>public.zip-archive</string></array>
-        <key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>apkg</string></array></dict>
-    </dict></array>
-    <key>UTExportedTypeDeclarations</key><array><dict>
-        <key>UTTypeIdentifier</key><string>app.openanki.backup</string>
-        <key>UTTypeDescription</key><string>OpenAnki Full Backup</string>
-        <key>UTTypeConformsTo</key><array><string>public.zip-archive</string></array>
-        <key>UTTypeTagSpecification</key><dict><key>public.filename-extension</key><array><string>openanki</string></array></dict>
-    </dict></array>
-</dict></plist>
+<plist version="1.0">
+<dict>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>zh-Hans</string>
+	</array>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>Anki Deck and OpenAnki Backup</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>net.anki.apkg</string>
+				<string>net.anki.colpkg</string>
+				<string>app.openanki.backup</string>
+			</array>
+		</dict>
+	</array>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>net.anki.apkg</string>
+			<key>UTTypeDescription</key>
+			<string>Anki Deck Package</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.zip-archive</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>apkg</string>
+				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>net.anki.colpkg</string>
+			<key>UTTypeDescription</key>
+			<string>Anki Collection Package</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.zip-archive</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>colpkg</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>app.openanki.backup</string>
+			<key>UTTypeDescription</key>
+			<string>OpenAnki Full Backup</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.zip-archive</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>openanki</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -1,0 +1,1 @@
+import{X as c}from"./DystvEAy.mjs";async function f(e,a){let n=await e();const{subscribe:i,set:o}=c(n);function r(t){n=t,o(t),a(t)}function s(t){r(t(n))}return{subscribe:i,set:r,update:s}}export{f as a};

@@ -1,0 +1,13 @@
+{
+  "repository": "https://github.com/ankitects/anki",
+  "commit": "29bb700b951e3f0c0cb69b77c0180fc1fe33e6ba",
+  "distribution": "aqt-26.9.3-py3-none-any.whl",
+  "distribution_sha256": "83d60a2494939128138692435ab9c65579338c6902aaba88606bce6b5ccd22d3",
+  "source_paths": [
+    "ts/reviewer",
+    "qt/aqt/data/web/js/reviewer-bottom.ts",
+    "ts/routes",
+    "ts/mathjax"
+  ],
+  "modifications": "none"
+}

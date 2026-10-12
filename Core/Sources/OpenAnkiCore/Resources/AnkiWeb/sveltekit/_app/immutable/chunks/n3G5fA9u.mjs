@@ -1,0 +1,1 @@
+import{r as s}from"./BRA69Ktd.mjs";import{a0 as a,a1 as n}from"./DystvEAy.mjs";function t(){return{isDark:document.documentElement.classList.contains("night-mode")}}let o=null;const r=a(t(),e=>{o=e});n(r);const m=new MutationObserver((e,i)=>{o(t())});m.observe(document.documentElement,{attributeFilter:["class"]});s("anki/theme",{pageTheme:r});export{r as p};

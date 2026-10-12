@@ -21,6 +21,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C10000000000000000000001 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/App.xcconfig; sourceTree = SOURCE_ROOT; };
 		B10000000000000000000001 /* OpenAnkiIOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = OpenAnkiIOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F767CB1E307C926F00318A4A /* OpenAnkiIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenAnkiIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -60,6 +61,7 @@
 		F767CB15307C926F00318A4A = {
 			isa = PBXGroup;
 			children = (
+				C10000000000000000000001 /* App.xcconfig */,
 				B10000000000000000000002 /* OpenAnkiIOSUITests */,
 				F767CB20307C926F00318A4A /* OpenAnkiIOS */,
 				F767CB1F307C926F00318A4A /* Products */,
@@ -209,6 +211,7 @@
 /* Begin XCBuildConfiguration section */
 		B1000000000000000000000A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C10000000000000000000001 /* App.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -227,6 +230,7 @@
 		};
 		B1000000000000000000000B /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C10000000000000000000001 /* App.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -363,12 +367,13 @@
 		};
 		F767CB2A307C927000318A4A /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C10000000000000000000001 /* App.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Z4XMWB5A4S;
+				DEVELOPMENT_TEAM = "$(OPENANKI_DEVELOPMENT_TEAM)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
@@ -384,7 +389,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = AW.OpenAnkiIOS;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(OPENANKI_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -400,12 +405,13 @@
 		};
 		F767CB2B307C927000318A4A /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C10000000000000000000001 /* App.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = Z4XMWB5A4S;
+				DEVELOPMENT_TEAM = "$(OPENANKI_DEVELOPMENT_TEAM)";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Config/Info.plist;
@@ -421,7 +427,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = AW.OpenAnkiIOS;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(OPENANKI_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

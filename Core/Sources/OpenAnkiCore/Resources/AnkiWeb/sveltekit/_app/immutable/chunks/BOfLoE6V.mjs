@@ -1,0 +1,1 @@
+import{l as n}from"./e7cyQYDg.mjs";async function i(e,s){let r=!1;async function t(){const a=await n({});s(a),!r&&setTimeout(t,100)}setTimeout(t,100);try{return await e()}finally{r=!0}}export{i as r};

@@ -1,0 +1,4 @@
+// Shared defaults. Account-specific signing belongs in the ignored local file.
+OPENANKI_DEVELOPMENT_TEAM =
+OPENANKI_BUNDLE_IDENTIFIER = com.example.OpenAnkiIOS
+#include? "Local.xcconfig"
