@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  OpenAnkiIOS
 //
-//  Created by 健 on 10/11/26.
+//  Created by Kaijian Wang on 10/11/26.
 //
 
 import SwiftUI
