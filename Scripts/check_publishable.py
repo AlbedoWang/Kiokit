@@ -26,7 +26,7 @@ for entry in files:
         issues.append((name, "local build/user directory"))
     if path.name == "Local.xcconfig" or path.suffix in [".p12", ".p8", ".mobileprovision", ".xcuserstate", ".log", ".xcresult", ".anki2", ".anki21", ".anki21b", ".db", ".db2", ".sqlite", ".sqlite3", ".openanki", ".dylib", ".a", ".ipa", ".crash", ".ips"]:
         issues.append((name, "private configuration, certificate, or diagnostic"))
-    if path.suffix in [".apkg", ".colpkg"] and not (name.startswith("Core/Tests/OpenAnkiCoreTests/Fixtures/") or name.startswith("OpenAnkiIOSUITests/")):
+    if path.suffix in [".apkg", ".colpkg"] and not (name.startswith("Core/Tests/KiokitCoreTests/Fixtures/") or name.startswith("KiokitUITests/")):
         issues.append((name, "personal deck outside authored test fixtures"))
     data = subprocess.check_output(["git", "cat-file", "blob", object_id])
     checked += 1
@@ -46,7 +46,7 @@ for entry in files:
     for category, pattern in patterns.items():
         if re.search(pattern, text):
             issues.append((name, category))
-    if not name.startswith(("Core/Sources/OpenAnkiCore/Resources/Licenses/", "Core/Sources/OpenAnkiCore/Resources/AnkiWeb/")):
+    if not name.startswith(("Core/Sources/KiokitCore/Resources/Licenses/", "Core/Sources/KiokitCore/Resources/AnkiWeb/")):
         for email in re.findall(r"[A-Za-z0-9_.+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}", text):
             if not email.endswith(("@users.noreply.github.com", "@example.com", "@example.org")):
                 issues.append((name, "account email outside upstream notices"))

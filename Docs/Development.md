@@ -2,13 +2,13 @@
 
 ## Layout
 
-- `OpenAnkiIOS/Application`: launch, navigation, and the observable UI store.
-- `OpenAnkiIOS/Features`: Decks, Cards, Review, Statistics, and Settings screens.
-- `OpenAnkiIOS/Shared`: reusable SwiftUI components and the theme.
-- `OpenAnkiIOS/Platform`: iOS audio, WebKit, and document bindings.
-- `Core/Sources/OpenAnkiCore`: Backend, Collection, Session, Frontend, Models,
+- `Kiokit/Application`: launch, navigation, and the observable UI store.
+- `Kiokit/Features`: Decks, Cards, Review, Statistics, and Settings screens.
+- `Kiokit/Shared`: reusable SwiftUI components and the theme.
+- `Kiokit/Platform`: iOS audio, WebKit, and document bindings.
+- `Core/Sources/KiokitCore`: Backend, Collection, Session, Frontend, Models,
   Localization, and Migration layers.
-- `Core/Sources/OpenAnkiCore/Resources`: original web assets, translations, and
+- `Core/Sources/KiokitCore/Resources`: original web assets, translations, and
   offline license notices.
 - `Backend`: Rust FFI transport and the pinned Anki submodule.
 - `Scripts`: builds, resource preparation, original fixture generation, and
@@ -58,7 +58,7 @@ python3 Scripts/verify_web_frontend_parity.py
 Additional scripts verify backend responses, rendering, typed answers, audio,
 and timer behavior against the actual pinned Anki implementation. The Python
 backend checks use the matching official `anki==26.9.3` wheel, as documented in
-each script. UI tests use the `OpenAnkiIOS` scheme on an iOS simulator; set
+each script. UI tests use the `Kiokit` scheme on an iOS simulator; set
 `-collect-test-diagnostics never` when invoking `xcodebuild test`.
 
 Optional external-deck tests read `OPENANKI_TEST_APKG` at runtime. Keep supplied

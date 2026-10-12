@@ -1,4 +1,4 @@
 // Copy to Local.xcconfig and enter your own Xcode signing team and bundle ID.
 // Local.xcconfig is ignored by Git. Never store account passwords here.
 OPENANKI_DEVELOPMENT_TEAM = YOUR_TEAM_ID
-OPENANKI_BUNDLE_IDENTIFIER = com.yourname.OpenAnkiIOS
+OPENANKI_BUNDLE_IDENTIFIER = com.yourname.Kiokit

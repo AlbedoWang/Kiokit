@@ -1,3 +1,3 @@
 # Preserve upstream asset/license bytes, including their original whitespace.
-Core/Sources/OpenAnkiCore/Resources/AnkiWeb/** -whitespace linguist-vendored
-Core/Sources/OpenAnkiCore/Resources/Licenses/** -whitespace linguist-vendored
+Core/Sources/KiokitCore/Resources/AnkiWeb/** -whitespace linguist-vendored
+Core/Sources/KiokitCore/Resources/Licenses/** -whitespace linguist-vendored

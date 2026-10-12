@@ -40,7 +40,7 @@ def main():
         del filtered.config.search_terms[1:]
         collection.sched.add_or_update_filtered_deck(filtered)
         collection._backend.export_collection_package(
-            out_path=str(ROOT / "OpenAnkiIOSUITests/filtered.colpkg"), include_media=True, legacy=False,
+            out_path=str(ROOT / "KiokitUITests/filtered.colpkg"), include_media=True, legacy=False,
         )
 
 if __name__ == "__main__":

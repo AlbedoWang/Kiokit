@@ -39,10 +39,10 @@ def main():
         missing = collection.new_note(basic)
         missing.fields = ["Missing image [$]y^3+7[/$]", "Generate the image in desktop Anki."]
         collection.add_note(missing, collection.decks.id("Missing LaTeX"))
-        collection._backend.export_collection_package(out_path=str(ROOT / "OpenAnkiIOSUITests/latex.colpkg"), include_media=True, legacy=False)
+        collection._backend.export_collection_package(out_path=str(ROOT / "KiokitUITests/latex.colpkg"), include_media=True, legacy=False)
         collection = Collection(str(path))
         collection.set_config_bool(Config.Bool.RENDER_LATEX, False)
-        collection._backend.export_collection_package(out_path=str(ROOT / "OpenAnkiIOSUITests/latex-disabled.colpkg"), include_media=True, legacy=False)
+        collection._backend.export_collection_package(out_path=str(ROOT / "KiokitUITests/latex-disabled.colpkg"), include_media=True, legacy=False)
 
 if __name__ == "__main__":
     main()

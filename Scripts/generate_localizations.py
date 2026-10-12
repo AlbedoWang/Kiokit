@@ -30,13 +30,13 @@ STRINGS = {
     "这些设置修改 Anki 的默认预设。牌组可使用其他预设或单独的每日额度；复习上限、父牌组额度与日切时间均由 Anki 管理。": "These settings change Anki's Default preset. Decks can use other presets or individual daily limits. Anki manages review caps, parent limits, and study-day boundaries.",
     "修改默认预设的音频设置。录音和 TTS 内容由 Anki 模板决定；TTS 使用模板指定的语言与设备语音。": "Changes audio settings in the Default preset. Anki templates determine recordings and TTS text; speech uses the template's language and an installed device voice.",
     "使用 Anki 官方导入与备份格式：.apkg、UTF-8 CSV/TSV 和 .colpkg。完整备份包含笔记、牌组设置、复习记录和媒体。": "Uses Anki's official import and backup formats: .apkg, UTF-8 CSV/TSV, and .colpkg. Full backups include notes, deck settings, review history, and media.",
-    "OpenAnki 使用 Anki 官方后端，版本 26.09.3。调度、队列、导入、模板和统计直接调用上游实现。": "OpenAnki uses the official Anki 26.09.3 backend. Scheduling, queues, imports, templates, and statistics call the upstream implementation directly.",
+    "Kiokit 使用 Anki 官方后端，版本 26.09.3。调度、队列、导入、模板和统计直接调用上游实现。": "Kiokit uses the official Anki 26.09.3 backend. Scheduling, queues, imports, templates, and statistics call the upstream implementation directly.",
     "可以导入 .colpkg 文件，在本应用或 Anki 中恢复完整学习数据。": "Import the .colpkg file in this app or Anki to restore your full study data.",
     "将替换当前牌组和学习进度。建议先在设置中导出当前备份。": "This replaces your collection and progress. Export a current backup in Settings first.",
     "新增 %@ 条笔记，更新 %@ 条，重复 %@ 条。": "%@ new notes, %@ updated, %@ duplicates.",
     "重播音频": "Replay audio", "设备语音": "Device voice", "无法合成或播放语音，请重试。": "Couldn't generate or play speech. Try again.",
     "设备上没有可用的指定语言语音，请下载语音后重试。": "No installed voice matches the requested language. Download a voice and try again.",
-    "此文件不包含旧版 OpenAnki 备份。": "This file does not contain a legacy OpenAnki backup.", "无法读取牌组。": "Couldn't read the collection.",
+    "此文件不包含旧版 OpenAnki 备份。": "This file does not contain a legacy Kiokit backup.", "无法读取牌组。": "Couldn't read the collection.",
     "学习顺序": "Study order", "按顺序": "In order", "随机": "Random", "播放音量": "Playback volume",
     "请输入 %@ 到 %@ 之间的整数。": "Enter a whole number from %@ to %@.",
     "随机模式会从整个牌组选取新卡片，并打乱到期复习卡片的顺序。当天顺序保持稳定，次日重新排列；到期的学习卡片仍优先出现。": "Random mode selects new cards from the whole deck and shuffles due reviews. The order stays stable throughout the day and changes the next day. Due learning cards still appear first.",
@@ -113,10 +113,10 @@ STRINGS = {
     "导入牌组或恢复备份": "Import deck or restore backup", "导出失败。\n%@": "Couldn't export the backup.\n%@", "导出完整备份": "Export full backup", "牌组与备份": "Decks & backups",
     "支持 .apkg、UTF-8 CSV/TSV 和 .openanki。完整备份包含牌组、复习进度、设置和媒体，建议定期保存到「文件」。": "Import .apkg, UTF-8 CSV/TSV, or .openanki files. A full backup includes decks, progress, settings, and media. Save backups to Files regularly.",
     "离线使用，无需账号": "Offline, no account needed", "版本": "Version", "导入与复习说明": "Import & study guide", "关于": "About",
-    "OpenAnki 是独立的离线闪卡应用。复习使用本地 SM-2 风格算法，导入 Anki 牌组时会重新开始学习。": "OpenAnki is an independent offline flashcard app with an SM-2 style scheduler. Imported Anki cards start with fresh progress.",
+    "Kiokit 是独立的离线闪卡应用。复习使用本地 SM-2 风格算法，导入 Anki 牌组时会重新开始学习。": "Kiokit is an independent offline flashcard app with an SM-2 style scheduler. Imported Anki cards start with fresh progress.",
     "备份已保存": "Backup saved", "可以随时导入 .openanki 文件，恢复牌组和学习进度。": "Import the .openanki file any time to restore your decks and progress.",
     "从桌面 Anki 导入": "Import from desktop Anki",
-    "1. 在 Anki 桌面版选择牌组，导出为 .apkg。\n2. 通过 AirDrop 或其他方式将文件保存到 iPhone / iPad 的「文件」。\n3. 在 OpenAnki 点击导入，选择该文件。": "1. Export your deck from desktop Anki as .apkg.\n2. Save it to Files on your iPhone or iPad, for example using AirDrop.\n3. Choose Import in OpenAnki and select the file.",
+    "1. 在 Anki 桌面版选择牌组，导出为 .apkg。\n2. 通过 AirDrop 或其他方式将文件保存到 iPhone / iPad 的「文件」。\n3. 在 Kiokit 点击导入，选择该文件。": "1. Export your deck from desktop Anki as .apkg.\n2. Save it to Files on your iPhone or iPad, for example using AirDrop.\n3. Choose Import in Kiokit and select the file.",
     "支持旧版 .anki2 / .anki21 和新版 .anki21b 包，支持常见正反面、反向、填空、模板样式及离线图片和音频。": "Supports legacy .anki2 / .anki21 and modern .anki21b packages, basic and reversed cards, cloze deletions, template styling, and offline images and audio.",
     "相同 Anki 笔记的相同卡片会去重。牌组名称相同时会合并；导入保留暂停状态，复习进度从头开始。": "Matching Anki cards are deduplicated and identically named decks are merged. Suspension is preserved; imported cards start fresh.",
     "文本导入": "Import text",
@@ -140,7 +140,7 @@ STRINGS = {
     "请使用小于 32 MB 的 UTF-8 文本文件。": "Choose a UTF-8 text file smaller than 32 MB.", "第 %@ 条记录缺少正面或背面；文本格式应为「正面、背面、标签（可选）」。": "Record %@ is missing a front or back. Use front, back, and optional tags columns.",
     "文件中没有可导入的卡片。": "The file contains no cards to import.", "文本超过 100,000 条记录。": "The text contains more than 100,000 records.", "文本包含未闭合的引号。": "The text contains an unclosed quote.",
     "带媒体的备份请使用 .openanki 文件恢复。": "Restore backups with media using an .openanki file.", "请选择 .apkg 牌组、CSV/TSV 文本或 .openanki 备份。": "Choose an .apkg deck, CSV/TSV text file, or .openanki backup.",
-    "此文件不是 OpenAnki 备份。": "This file is not an OpenAnki backup.", "备份包含无效的媒体路径。": "The backup contains an invalid media path.", "媒体总大小超过 1 GB。": "Total media size exceeds 1 GB.",
+    "此文件不是 Kiokit 备份。": "This file is not a Kiokit backup.", "备份包含无效的媒体路径。": "The backup contains an invalid media path.", "媒体总大小超过 1 GB。": "Total media size exceeds 1 GB.",
     "牌组中的文件过大。": "A file in this package is too large.", "文件超过大小限制。": "The file exceeds the size limit.", "无法创建解压器。": "Couldn't create a decompressor.", "无法初始化解压器。": "Couldn't initialize the decompressor.",
     "Zstandard 压缩数据已损坏。": "The Zstandard data is corrupt.", "解压后的文件过大。": "The decompressed file is too large.", "压缩数据不完整。": "The compressed data is incomplete.",
     "Protobuf 数据不完整。": "The protobuf data is incomplete.", "Protobuf 数值溢出。": "A protobuf number overflowed.", "Protobuf 数值无效。": "A protobuf number is invalid.", "Protobuf 字段无效。": "A protobuf field is invalid.", "Protobuf 长度无效。": "A protobuf length is invalid.", "不支持的 Protobuf 编码。": "This protobuf encoding is not supported.",
@@ -160,7 +160,7 @@ STRINGS.update({
 })
 
 if __name__ == "__main__":
-    root = Path(__file__).resolve().parents[1] / "Core/Sources/OpenAnkiCore/Resources"
+    root = Path(__file__).resolve().parents[1] / "Core/Sources/KiokitCore/Resources"
     for language in ("en", "zh-Hans"):
         path = root / f"{language}.lproj/Localizable.strings"
         path.parent.mkdir(parents=True, exist_ok=True)

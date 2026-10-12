@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 task_root="$(cd "$(dirname "$0")/.." && pwd)"
-task_cache="${OPENANKI_TOOL_CACHE:-$HOME/Library/Caches/OpenAnkiIOS}"
+task_cache="${OPENANKI_TOOL_CACHE:-$HOME/Library/Caches/Kiokit}"
 export RUSTUP_HOME="$task_cache/rustup"
 export CARGO_HOME="$task_cache/cargo"
 export PATH="$CARGO_HOME/bin:$PATH"

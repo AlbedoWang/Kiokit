@@ -30,7 +30,7 @@ def main():
                 <script>var time = "Original template time variable";
                 document.getElementById('original-timer-variable').textContent = time;</script>''', "Original timed answer"]
             collection.add_note(note, did)
-        collection._backend.export_collection_package(out_path=str(ROOT / "OpenAnkiIOSUITests/timers.colpkg"), include_media=True, legacy=False)
+        collection._backend.export_collection_package(out_path=str(ROOT / "KiokitUITests/timers.colpkg"), include_media=True, legacy=False)
 
 if __name__ == "__main__":
     main()

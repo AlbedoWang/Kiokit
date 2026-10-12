@@ -13,7 +13,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 VERSION = "26.9.3"
 SHA256 = "83d60a2494939128138692435ab9c65579338c6902aaba88606bce6b5ccd22d3"
-DESTINATION = ROOT / "Core/Sources/OpenAnkiCore/Resources/AnkiWeb"
+DESTINATION = ROOT / "Core/Sources/KiokitCore/Resources/AnkiWeb"
 
 def main():
     with urllib.request.urlopen(f"https://pypi.org/pypi/aqt/{VERSION}/json") as response:

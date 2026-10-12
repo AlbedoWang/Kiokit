@@ -20,8 +20,8 @@ import urllib.parse
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-DESTINATION = ROOT / "Core/Sources/OpenAnkiCore/Resources/Licenses"
-CACHE = Path(os.environ.get("OPENANKI_TOOL_CACHE", Path.home() / "Library/Caches/OpenAnkiIOS"))
+DESTINATION = ROOT / "Core/Sources/KiokitCore/Resources/Licenses"
+CACHE = Path(os.environ.get("OPENANKI_TOOL_CACHE", Path.home() / "Library/Caches/Kiokit"))
 
 
 def is_notice(name):
@@ -137,7 +137,7 @@ def main():
     (DESTINATION / "Anki").mkdir(exist_ok=True)
     for name in ["LICENSE", "CONTRIBUTORS"]:
         copy_notice(ROOT / "Backend/anki" / name, DESTINATION / "Anki" / name)
-    copy_notice(ROOT / "LICENSE", DESTINATION / "OpenAnki-LICENSE.txt")
+    copy_notice(ROOT / "LICENSE", DESTINATION / "Kiokit-LICENSE.txt")
     copy_notice(ROOT / "NOTICE.md", DESTINATION / "NOTICE.md")
     copy_notice(ROOT / "Core/.build/checkouts/ZIPFoundation/LICENSE", DESTINATION / "ZIPFoundation-LICENSE.txt")
     rust, rust_count = rust_notices()

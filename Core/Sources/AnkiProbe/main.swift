@@ -1,5 +1,5 @@
 import Foundation
-import OpenAnkiCore
+import KiokitCore
 
 // A local verification harness for transport parity with the official Python
 // backend. It forwards upstream requests and contains no application rules.

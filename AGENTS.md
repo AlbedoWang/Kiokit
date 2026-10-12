@@ -1,6 +1,6 @@
 # Hard Constraints
 
-These rules apply to the entire OpenAnkiIOS repository and all future changes.
+These rules apply to the entire Kiokit repository and all future changes.
 
 ## Anki Is the Source of Truth
 

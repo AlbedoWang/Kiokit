@@ -81,7 +81,7 @@ def main():
             note = collection.new_note(collection.models.by_name("Basic"))
             note.fields = [front, "Original media answer"]
             collection.add_note(note, collection.decks.id(deck))
-        collection._backend.export_collection_package(out_path=str(ROOT / "OpenAnkiIOSUITests/media.colpkg"), include_media=True, legacy=False)
+        collection._backend.export_collection_package(out_path=str(ROOT / "KiokitUITests/media.colpkg"), include_media=True, legacy=False)
 
 if __name__ == "__main__":
     main()

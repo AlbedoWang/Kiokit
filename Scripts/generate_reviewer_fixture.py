@@ -41,7 +41,7 @@ def main():
         customData.good.deck = ctx.deckName;
         """)
         collection._backend.export_collection_package(
-            out_path=str(ROOT / "OpenAnkiIOSUITests/reviewer.colpkg"), include_media=True, legacy=False,
+            out_path=str(ROOT / "KiokitUITests/reviewer.colpkg"), include_media=True, legacy=False,
         )
 
 if __name__ == "__main__":

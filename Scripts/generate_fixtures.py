@@ -19,7 +19,7 @@ from anki.collection import Collection
 from anki.scheduler_pb2 import CardAnswer
 
 ROOT = Path(__file__).resolve().parents[1]
-DESTINATION = ROOT / "Core/Tests/OpenAnkiCoreTests/Fixtures"
+DESTINATION = ROOT / "Core/Tests/KiokitCoreTests/Fixtures"
 
 def media(collection):
     image = base64.b64decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a5C8AAAAASUVORK5CYII=")
@@ -63,7 +63,7 @@ def main():
         export_package(collection, DESTINATION / "legacy.apkg", True)
         export_package(collection, DESTINATION / "modern.apkg", False)
         collection.close()
-    shutil.copy2(DESTINATION / "modern.apkg", ROOT / "OpenAnkiIOSUITests/modern.apkg")
+    shutil.copy2(DESTINATION / "modern.apkg", ROOT / "KiokitUITests/modern.apkg")
     with tempfile.TemporaryDirectory() as directory:
         collection = Collection(str(Path(directory) / "collection.anki2"))
         deck = collection.decks.id("Backup native deck")
@@ -75,7 +75,7 @@ def main():
             rating=3, answered_at_millis=int(time.time() * 1000), milliseconds_taken=2000,
         ))
         collection._backend.export_collection_package(
-            out_path=str(ROOT / "OpenAnkiIOSUITests/backup.colpkg"), include_media=True, legacy=False,
+            out_path=str(ROOT / "KiokitUITests/backup.colpkg"), include_media=True, legacy=False,
         )
     with tempfile.TemporaryDirectory() as directory:
         collection = Collection(str(Path(directory) / "collection.anki2"))
@@ -87,7 +87,7 @@ def main():
             "settings": {"dailyGoal": 200, "newCardsPerDay": 20, "appearance": "system", "interfaceLanguage": "zh-Hans"},
         })
         collection._backend.export_collection_package(
-            out_path=str(ROOT / "OpenAnkiIOSUITests/backup-zh.colpkg"), include_media=True, legacy=False,
+            out_path=str(ROOT / "KiokitUITests/backup-zh.colpkg"), include_media=True, legacy=False,
         )
 
 if __name__ == "__main__":

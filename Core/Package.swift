@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "OpenAnkiCore",
+    name: "KiokitCore",
     defaultLocalization: "en",
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
-        .library(name: "OpenAnkiCore", targets: ["OpenAnkiCore"]),
+        .library(name: "KiokitCore", targets: ["KiokitCore"]),
         .executable(name: "AnkiProbe", targets: ["AnkiProbe"]),
     ],
     dependencies: [
@@ -14,7 +14,7 @@ let package = Package(
     ],
     targets: [
         .binaryTarget(name: "AnkiBackendFFI", path: "AnkiBackendFFI.xcframework"),
-        .target(name: "OpenAnkiCore", dependencies: [
+        .target(name: "KiokitCore", dependencies: [
             "AnkiBackendFFI",
             .product(name: "ZIPFoundation", package: "ZIPFoundation"),
         ], resources: [.process("Resources/en.lproj"), .process("Resources/zh-Hans.lproj"), .copy("Resources/AnkiWeb"), .copy("Resources/Licenses")], linkerSettings: [
@@ -23,7 +23,7 @@ let package = Package(
             .linkedLibrary("resolv"),
             .linkedLibrary("c++"),
         ]),
-        .testTarget(name: "OpenAnkiCoreTests", dependencies: ["OpenAnkiCore"], resources: [.copy("Fixtures")]),
-        .executableTarget(name: "AnkiProbe", dependencies: ["OpenAnkiCore"]),
+        .testTarget(name: "KiokitCoreTests", dependencies: ["KiokitCore"], resources: [.copy("Fixtures")]),
+        .executableTarget(name: "AnkiProbe", dependencies: ["KiokitCore"]),
     ]
 )

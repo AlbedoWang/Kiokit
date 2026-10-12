@@ -16,7 +16,7 @@ import zipfile
 from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
-ASSETS = ROOT / "Core/Sources/OpenAnkiCore/Resources/AnkiWeb"
+ASSETS = ROOT / "Core/Sources/KiokitCore/Resources/AnkiWeb"
 
 def upstream_bindings():
     source = ROOT / "Backend/anki/qt/aqt/mediasrv.py"

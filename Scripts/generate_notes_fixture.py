@@ -26,7 +26,7 @@ def main():
         queued = collection._backend.get_queued_cards(fetch_limit=1, intraday_learning_only=False).cards[0]
         collection._backend.answer_card(CardAnswer(card_id=queued.card.id, current_state=queued.states.current,
             new_state=queued.states.easy, rating=3, answered_at_millis=int(time.time() * 1000), milliseconds_taken=1500))
-        collection._backend.export_collection_package(out_path=str(ROOT / "OpenAnkiIOSUITests/notes.colpkg"), include_media=True, legacy=False)
+        collection._backend.export_collection_package(out_path=str(ROOT / "KiokitUITests/notes.colpkg"), include_media=True, legacy=False)
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,9 @@
-# OpenAnki iOS
+# Kiokit
+
+> **Support upstream Anki:** If you can, please consider purchasing
+> [AnkiMobile, the official iOS app](https://apps.apple.com/app/ankimobile-flashcards/id373493387).
+> Purchases help fund Anki's continued development. This project relies on the
+> work of the Anki team and contributors—thank you for supporting them.
 
 An independent, offline flashcard app for iPhone and iPad, written in Swift and
 SwiftUI using the official [Anki backend](https://github.com/ankitects/anki).
@@ -12,15 +17,15 @@ Requires iOS 17 or later. No account is needed, and no personal decks are bundle
 2. Clone the project and build the Anki backend once in Terminal:
 
    ```sh
-   git clone --recurse-submodules https://github.com/AlbedoWang/OpenAnkiIOS.git
-   cd OpenAnkiIOS
+   git clone --recurse-submodules https://github.com/AlbedoWang/Kiokit.git Kiokit
+   cd Kiokit
    brew install protobuf
    bash Scripts/build_backend.sh
    ```
 
    The script downloads the pinned Rust toolchain and produces the local backend
    library. The first build can take a while.
-3. Open `OpenAnkiIOS.xcodeproj` in Xcode and choose the **OpenAnkiIOS** scheme.
+3. Open `Kiokit.xcodeproj` in Xcode and choose the **Kiokit** scheme.
 4. In **Xcode → Settings → Apple Accounts**, sign in with **your own** Apple Account.
    Copy `Config/Local.xcconfig.example` to `Config/Local.xcconfig`, then enter your
    own Team ID and a unique Bundle Identifier. The local file is ignored by Git.
@@ -29,7 +34,7 @@ Requires iOS 17 or later. No account is needed, and no personal decks are bundle
 5. Connect and unlock your iPhone, trust the Mac, and select the phone as Xcode's
    run destination. Enable **Developer Mode** under the phone's
    **Settings → Privacy & Security** if prompted, then restart the phone.
-6. Click **Run** (⌘R). Xcode builds and installs the app. OpenAnki's **Import**
+6. Click **Run** (⌘R). Xcode builds and installs the app. Kiokit's **Import**
    button can open an `.apkg` deck saved in Files.
 
 See Apple's [device setup guide](https://developer.apple.com/documentation/xcode/running-your-app-on-simulated-or-physical-devices) for signing and connection help.

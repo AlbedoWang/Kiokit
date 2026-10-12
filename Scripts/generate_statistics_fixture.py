@@ -30,7 +30,7 @@ def main():
         collection._backend.answer_card(CardAnswer(card_id=queued.card.id, current_state=queued.states.current,
             new_state=queued.states.easy, rating=3, answered_at_millis=int(time.time() * 1000), milliseconds_taken=2500))
         collection.sched.suspend_cards([cards["Statistics A"][-1]])
-        collection._backend.export_collection_package(out_path=str(ROOT / "OpenAnkiIOSUITests/statistics.colpkg"), include_media=True, legacy=False)
+        collection._backend.export_collection_package(out_path=str(ROOT / "KiokitUITests/statistics.colpkg"), include_media=True, legacy=False)
 
 if __name__ == "__main__":
     main()

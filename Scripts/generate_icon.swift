@@ -55,7 +55,7 @@ func writeIcon(to path: String, transparent: Bool) {
     guard CGImageDestinationFinalize(output) else { fatalError("Could not save icon") }
 }
 
-let target = CommandLine.arguments.dropFirst().first ?? "OpenAnkiIOS/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
-let markTarget = CommandLine.arguments.dropFirst(2).first ?? "OpenAnkiIOS/Assets.xcassets/AppMark.imageset/AppMark.png"
+let target = CommandLine.arguments.dropFirst().first ?? "Kiokit/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
+let markTarget = CommandLine.arguments.dropFirst(2).first ?? "Kiokit/Assets.xcassets/AppMark.imageset/AppMark.png"
 writeIcon(to: target, transparent: false)
 writeIcon(to: markTarget, transparent: true)
